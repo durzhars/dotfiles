@@ -1,0 +1,89 @@
+{
+  "commands": [
+    {
+      "name": "Lightning",
+      "command": "~/.config/hypr/scripts/animation.sh lightning",
+      "icon": "brush"
+    },
+    {
+      "name": "Silk",
+      "command": "~/.config/hypr/scripts/animation.sh silk",
+      "icon": "brush"
+    },
+    {
+      "name": "Rebound",
+      "command": "~/.config/hypr/scripts/animation.sh rebound",
+      "icon": "brush"
+    },
+    {
+      "name": "Elastic",
+      "command": "~/.config/hypr/scripts/animation.sh elastic",
+      "icon": "brush"
+    },
+    {
+      "name": "Fade",
+      "command": "~/.config/hypr/scripts/animation.sh fade",
+      "icon": "brush"
+    },
+    {
+      "name": "Organic",
+      "command": "~/.config/hypr/scripts/animation.sh organic",
+      "icon": "brush"
+    },
+    {
+      "name": "Subtle",
+      "command": "~/.config/hypr/scripts/animation.sh subtle",
+      "icon": "brush"
+    },
+    {
+      "name": "Retro Arcade",
+      "command": "~/.config/hypr/scripts/animation.sh retro_arcade",
+      "icon": "brush"
+    },
+    {
+      "name": "Minimalist Snappy",
+      "command": "~/.config/hypr/scripts/animation.sh minimalist_snappy",
+      "icon": "brush"
+    },
+    {
+      "name": "Minimalist Silk",
+      "command": "~/.config/hypr/scripts/animation.sh minimalist_silk",
+      "icon": "brush"
+    },
+    {
+      "name": "Material Modern",
+      "command": "~/.config/hypr/scripts/animation.sh material_modern",
+      "icon": "brush"
+    },
+    {
+      "name": "Linear",
+      "command": "~/.config/hypr/scripts/animation.sh linear",
+      "icon": "brush"
+    },
+    {
+      "name": "Energetic",
+      "command": "~/.config/hypr/scripts/animation.sh energetic",
+      "icon": "brush"
+    },
+    {
+      "name": "Elastic Inertia",
+      "command": "~/.config/hypr/scripts/animation.sh elastic_inertia",
+      "icon": "brush"
+    },
+    {
+      "name": "Dynamic",
+      "command": "~/.config/hypr/scripts/animation.sh dynamic",
+      "icon": "brush"
+    },
+    {
+      "name": "Crystal"
+      "command": "~/.config/hypr/scripts/animation.sh crystal"
+      "icon": "brush"
+    },
+    {
+      "name": "Classic Impact"
+      "command": "~/.config/hypr/scripts/animation.sh classic_impact"
+      "icon": "brush"
+    },
+  ]
+}

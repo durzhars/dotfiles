@@ -1,0 +1,88 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+
+# =============================================================================
+# Core System & Git
+# =============================================================================
+
+[directory]
+#   (Folder icon)
+format = '\[[ $path]($style)\]'
+style = "bold blue"
+
+[cmd_duration]
+min_time = 2000
+# 󱎫  (Timer icon)
+format = '\[[󱎫 $duration]($style)\]'
+style = "bold yellow"
+
+[git_branch]
+symbol = " "
+format = '\[[$symbol$branch]($style)\]'
+style = "bold purple"
+
+[git_commit]
+#   (Git commit icon)
+format = '\[[ \($hash$tag\)]($style)\]'
+
+[git_state]
+format = '\[[$state ($progress_current/$progress_total)]($style)\]'
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style))'
+
+[hostname]
+# 󰒋  (Server/Display icon for SSH sessions)
+ssh_symbol = "󰒋 "
+format = '\[[$ssh_symbol$hostname]($style)\]'
+style = "bold green"
+
+[username]
+#   (User icon)
+format = '\[[ $user]($style)\]'
+disabled = false
+show_always = true
+
+[time]
+disabled = false
+#   (Clock icon)
+format = '\[[ $time]($style)\]'
+time_format = "%R"
+utc_time_offset = "local"
+
+# =============================================================================
+# Languages & Tools
+# =============================================================================
+
+[c]
+symbol = " "
+format = '\[[$symbol($version(-$name))]($style)\]'
+
+[cpp]
+symbol = " "
+format = '\[[$symbol($version(-$name))]($style)\]'
+
+[cmake]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[java]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[nodejs]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[php]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[python]
+symbol = " "
+format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
+
+[lua]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
