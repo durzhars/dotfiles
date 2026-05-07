@@ -3,7 +3,6 @@
 readarray -t ADDRESSES < <(hyprctl clients -j | jq -r '[.[] | select(.mapped == true)] | reverse | .[].address')
 
 window_addr() {
-  # $1 is the first argument passed to this function
   hyprctl clients -j | jq -e --arg address "$1" '.[] | select(.address == $address)' >/dev/null
 }
 
