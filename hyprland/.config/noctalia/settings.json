@@ -325,7 +325,7 @@
         ]
     },
     "colorSchemes": {
-        "darkMode": true,
+        "darkMode": false,
         "generationMethod": "tonal-spot",
         "manualSunrise": "07:00",
         "manualSunset": "18:00",
@@ -426,21 +426,21 @@
                         "scale": 1.0532355652190186,
                         "showBackground": false,
                         "useCustomFont": true,
-                        "x": 7,
-                        "y": 937
+                        "x": 0,
+                        "y": 940
                     },
                     {
                         "hideMode": "hidden",
                         "id": "MediaPlayer",
                         "roundedCorners": true,
-                        "scale": 1.0438520357976382,
+                        "scale": 1,
                         "showAlbumArt": true,
                         "showBackground": true,
                         "showButtons": true,
                         "showVisualizer": false,
                         "visualizerType": "wave",
-                        "x": 590,
-                        "y": 837
+                        "x": 608,
+                        "y": 843
                     }
                 ]
             }
