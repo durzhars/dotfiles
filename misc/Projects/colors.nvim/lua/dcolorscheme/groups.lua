@@ -7,7 +7,7 @@ M.setup = function()
 		-- CORE UI
 		-- ==========================================
 		Normal = { fg = colors.fg, bg = colors.bg },
-		NormalFloat = { fg = colors.bg, bg = colors.bg_alt },
+		NormalFloat = { fg = colors.fg, bg = colors.bg_alt },
 		FloatBorder = { fg = colors.border, bg = colors.bg_alt },
 		ColorColumn = { bg = colors.bg_alt },
 		CursorLine = { bg = colors.bg_alt },

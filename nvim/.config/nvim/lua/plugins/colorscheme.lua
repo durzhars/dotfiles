@@ -12,4 +12,11 @@ return {
       colorscheme = "dcolorscheme",
     },
   },
+
+  {
+    "nvim-lualine/lualine.nvim",
+    opts = function(_, opts)
+      opts.options.theme = require("dcolorscheme.lualine")
+    end,
+  },
 }

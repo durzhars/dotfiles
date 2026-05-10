@@ -14,6 +14,11 @@ end
 
 M.reload = function()
 	vim.cmd("colorscheme dcolorscheme")
+	if package.loaded["lualine"] then
+		require("lualine").setup({
+			options = { theme = require("dcolorscheme.lualine") },
+		})
+	end
 	vim.notify("Dynamic Colors Reloaded", vim.log.levels.INFO)
 end
 

@@ -86,3 +86,12 @@ format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
 [lua]
 symbol = " "
 format = '\[[$symbol($version)]($style)\]'
+
+[package]
+symbol = "󰏗 "
+format = '\[[$symbol$version]($style)\]'
+
+
+[rust]
+symbol = "󱘗 "
+format = '\[[$symbol($version)]($style)\]'

@@ -1,5 +1,7 @@
 package.loaded["dcolorscheme.neovim"] = nil
 package.loaded["dcolorscheme.groups"] = nil
+package.loaded["dcolorscheme.lualine"] = nil
+
 -- 1. Clear existing highlights
 vim.cmd("hi clear")
 

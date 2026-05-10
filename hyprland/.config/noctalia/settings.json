@@ -125,7 +125,7 @@
                     "middleClickExec": "",
                     "middleClickUpdateText": false,
                     "parseJson": false,
-                    "rightClickExec": "",
+                    "rightClickExec": "killall mpv",
                     "rightClickUpdateText": false,
                     "showExecTooltip": true,
                     "showIcon": true,
