@@ -17,7 +17,7 @@ setopt INC_APPEND_HISTORY    # Write to the history file immediately, not when s
 # like Starship will calculate and display execution time automatically.
 
 # =============================================================================
-# Tab Completion (Native, no OMZ overhead)
+# Tab Completion
 # =============================================================================
 autoload -Uz compinit
 compinit
@@ -28,7 +28,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Match colors to ls
 # =============================================================================
 # Keybindings (Using standard Zsh behavior)
 # =============================================================================
-bindkey -e 
+bindkey -e
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
@@ -53,8 +53,10 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
+alias icat='kitten icat'
+
 # =============================================================================
-# Environment Variables & Aliases
+# Environment Variables
 # =============================================================================
 export EDITOR="nvim"
 export SUDO_EDITOR="nvim"
@@ -71,6 +73,7 @@ source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 eval "$(starship init zsh)"
+fastfetch -c $HOME/.config/fastfetch/config.jsonc
 
 # =============================================================================
 # Transient Prompt (Shrinks previous commands to a single line)

@@ -15,6 +15,10 @@
 input_path = "~/.config/noctalia/templates/hyprlandborders.conf"
 output_path = "~/.config/hypr/noctalia/noctalia-colors.conf"
 
+[templates.hyprlua]
+input_path = "~/.config/hypr/modules/hyprlandborders.lua"
+output_path = "~/.config/hypr/noctalia/noctalia-colors.lua"
+
 [templates.neovim]
 input_path = "~/.config/noctalia/templates/neovim.lua"
 output_path = "~/Projects/colors.nvim/lua/dcolorscheme/neovim.lua"
