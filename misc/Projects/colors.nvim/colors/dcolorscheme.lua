@@ -1,3 +1,4 @@
+-- ~/Projects/colors.nvim/colors/dcolorscheme.lua
 package.loaded["dcolorscheme.neovim"] = nil
 package.loaded["dcolorscheme.groups"] = nil
 package.loaded["dcolorscheme.lualine"] = nil

@@ -1,3 +1,5 @@
+-- ~/Projects/colors.nvim/lua/dcolorscheme/init.lua
+
 local M = {}
 local watcher_active = false
 local last_reload = 0
