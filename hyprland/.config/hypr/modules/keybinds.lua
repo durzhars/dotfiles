@@ -1,7 +1,7 @@
 local fileManager = "dolphin"
 local browser = "brave"
 local screenshot = "~/.config/hypr/scripts/screenshot.sh"
-local ipc = "qs -c noctalia-shell ipc call "
+local ipc = "noctalia msg "
 local terminal = "kitty"
 local btop = "kitty -e btop"
 
@@ -58,12 +58,12 @@ binder.create_bind({
         mainMod .. "+ SHIFT + P",
     },
     exec = {
-        cmd(ipc .. "launcher toggle"),
-        cmd(ipc .. "settings toggle"),
-        cmd(ipc .. "controlCenter toggle"),
-        cmd(ipc .. "lockScreen lock"),
-        cmd(ipc .. "wallpaper toggle"),
-        cmd(ipc .. "sessionMenu toggle"),
+        cmd(ipc .. "panel-toggle launcher"),
+        cmd(ipc .. "panel-toggle control-center"),
+        cmd(ipc .. "settings-toggle"),
+        cmd(ipc .. "screen-lock"),
+        cmd(ipc .. "panel-toggle wallpaper"),
+        cmd(ipc .. "panel-toggle session"),
     },
 })
 
@@ -194,11 +194,11 @@ binder.create_bind({
         { "XF86AudioPrev", mainMod .. "+ U" },
     },
     exec = {
-        cmd(ipc .. "volume increase"),
-        cmd(ipc .. "volume decrease"),
-        cmd(ipc .. "brightness increase"),
-        cmd(ipc .. "brightness decrease"),
-        cmd(ipc .. "media playPause"),
+        cmd(ipc .. "volume-up"),
+        cmd(ipc .. "volume-down"),
+        cmd(ipc .. "brightness-up"),
+        cmd(ipc .. "brightness-down"),
+        cmd(ipc .. "media toggle"),
         cmd(ipc .. "media next"),
         cmd(ipc .. "media previous"),
     },

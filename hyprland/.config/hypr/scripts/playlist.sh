@@ -16,5 +16,5 @@ if socat - UNIX-CONNECT:"$SOCKET" <<<'{"command": ["get_property", "mpv-version"
 else
   rm -f "$SOCKET"
   notify-send "Music Daemon" "Starting new session: $(basename "$PLAYLIST")"
-  mpv --no-video --idle=yes --input-ipc-server="$SOCKET" "$PLAYLIST" &
+  mpv --no-video -idle=yes --input-ipc-server="$SOCKET" "$PLAYLIST" &
 fi

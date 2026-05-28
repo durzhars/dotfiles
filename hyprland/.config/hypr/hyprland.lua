@@ -12,12 +12,12 @@ hl.monitor({
     output = "",
     mode = "1920x1200@60",
     position = "0x0",
-    scale = "1.20",
+    bitdepth = 10,
 })
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("uwsm app -- /usr/lib/pam_kwallet_init")
     hl.exec_cmd("uwsm app -- /usr/lib/hyprpolkitagent/hyprpolkitagent")
-    hl.exec_cmd("uwsm app -- qs -c noctalia-shell")
+    hl.exec_cmd("uwsm app -- noctalia")
     hl.exec_cmd("echo 'Xft.dpi=128' | xrdb -merge")
 end)

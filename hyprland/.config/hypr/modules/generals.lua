@@ -1,8 +1,8 @@
 hl.config({
     general = {
-        gaps_in = 1,
-        gaps_out = 1,
-        border_size = 1,
+        gaps_in = 6,
+        gaps_out = 10,
+        border_size = 2,
         resize_on_border = true,
         allow_tearing = true,
         layout = "dwindle",
@@ -13,12 +13,12 @@ hl.config({
         },
     },
     decoration = {
-        rounding = 1,
+        rounding = 10,
         rounding_power = 2.5,
         active_opacity = 0.95,
         inactive_opacity = 0.8,
         shadow = {
-            enabled = true,
+            enabled = false,
             range = 4,
             render_power = 3,
             color = "rgba(1a1a1aee)",
