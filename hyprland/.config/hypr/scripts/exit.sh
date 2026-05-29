@@ -1,32 +1,70 @@
 #!/usr/bin/env bash
 
-readarray -t ADDRESSES < <(hyprctl clients -j | jq -r '[.[] | select(.mapped == true)] | reverse | .[].address')
+set -euo pipefail
 
-window_addr() {
-  hyprctl clients -j | jq -e --arg address "$1" '.[] | select(.address == $address)' >/dev/null
-}
+# Parse the intended action (Default to 'logout' if nothing is passed)
+ACTION="${1:-logout}"
 
-for address in "${ADDRESSES[@]}"; do
+# Validate the argument to prevent typos from hanging the system
+if [[ ! "$ACTION" =~ ^(logout|reboot|shutdown)$ ]]; then
+  notify-send -u critical "Session Manager" "Error: Invalid action '$ACTION'.\nUse: logout, reboot, or shutdown."
+  exit 1
+fi
 
-  if ! window_addr "$address"; then
-    continue
-  fi
+# 2. Fetch all mapped window addresses
+readarray -t ADDRESSES < <(hyprctl clients \
+  | awk '/^Window/ { addr = $2 } /^[[:space:]]*mapped: 1/ { print "0x" addr }')
 
-  hyprctl dispatch focuswindow address:"$address"
-  hyprctl dispatch closewindow address:"$address"
-  CLOSED=false
+# If no windows are open, jump straight to the power action
+if [[ ${#ADDRESSES[@]} -eq 0 ]]; then
+  EXECUTE_POWER_ACTION=true
+else
+  # 3. Sequentially focus, close, and poll each window
+  for addr in "${ADDRESSES[@]}"; do
+    raw_addr="${addr#0x}"
 
-  for i in {1..10}; do
-    if ! window_addr "$address"; then
-      CLOSED=true
-      break
+    if ! hyprctl clients | grep -qi "^Window ${raw_addr}"; then
+      continue
     fi
-    sleep 0.5
+
+    hyprctl dispatch "hl.dsp.focus({ window = 'address:${addr}' })" >/dev/null
+    hyprctl dispatch "hl.dsp.window.close({ window = 'address:${addr}' })" >/dev/null
+
+    CLOSED=false
+
+    for i in {1..10}; do
+      if ! hyprctl clients | grep -qi "^Window ${raw_addr}"; then
+        CLOSED=true
+        break
+      fi
+      sleep 0.5
+    done
+
+    if [[ "$CLOSED" == false ]]; then
+      notify-send -u critical "Session Manager" "Action cancelled. Application refused to close."
+      exit 1
+    fi
   done
 
-  if [[ "$CLOSED" == false ]]; then
-    notify-send -u critical "Logout" 'Logout Cancelled!'
-    exit 0
-  fi
-done
+  EXECUTE_POWER_ACTION=true
+fi
+
+# Execute the requested system state
+if [[ "$EXECUTE_POWER_ACTION" == true ]]; then
+  notify-send "Session Manager" "Apps closed safely. Executing: ${ACTION}..."
+  sleep 0.5 # Give the notification a split second to render before teardown
+
+  case "$ACTION" in
+    shutdown)
+      systemctl poweroff
+      ;;
+    reboot)
+      systemctl reboot
+      ;;
+    logout)
+      uwsm stop
+      ;;
+  esac
+fi
+
 exit 0

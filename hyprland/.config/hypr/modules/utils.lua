@@ -1,5 +1,6 @@
-local M = {}
-function M.create_bind(spec)
+-- Abstractions
+local m = {}
+function m.create_bind(spec)
     local handles = {}
     for i, key_data in ipairs(spec.keys) do
         local action = spec.exec[i]
@@ -35,4 +36,21 @@ function M.create_bind(spec)
     return handles
 end
 
-return M
+function m.create_tags(spec)
+    local handles = {}
+    local matches = spec.matches or (spec.match and { spec.match }) or {}
+
+    for _, match_obj in ipairs(matches) do
+        local rule_def = { match = match_obj }
+
+        if spec.rules then
+            for key, value in pairs(spec.rules) do
+                rule_def[key] = value
+            end
+        end
+        table.insert(handles, hl.window_rule(rule_def))
+    end
+    return handles
+end
+
+return m

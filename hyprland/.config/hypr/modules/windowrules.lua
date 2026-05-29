@@ -1,6 +1,27 @@
+binder.create_tags({
+    matches = {
+        { class = "^(org.freedesktop.impl.portal.*)$" },
+        { class = "^(code|visual-studio-code-bin)$", title = "^(Open Folder|Save As|Extension.*)$" },
+        { class = "^(steam)$", title = "^(Friends List|Steam - News|.*Settings.*)$" },
+        { class = "^(com.obsproject.Studio)$", title = "^(Settings|Projector.*)$" },
+        { modal = true },
+    },
+    rules = {
+        tag = "+dialogs",
+    },
+})
+
+hl.window_rule({
+    name = "style_dialogs",
+    match = { tag = "dialogs" },
+    float = true,
+    center = true,
+    persistent_size = true,
+})
+
 -- ==========================================
 -- SYSTEM FIXES & HYPRLAND NATIVES
--- ==========================================
+-- ==========================================-
 
 hl.window_rule({
     name = "suppress-maximize-events",
@@ -47,7 +68,6 @@ hl.window_rule({
 hl.window_rule({
     name = "libreoffice",
     match = { class = "(.*libreoffice-.*)" },
-    border_color = "rgb(b3ff1a)",
     workspace = "3",
     opaque = true,
 })
@@ -69,50 +89,15 @@ hl.window_rule({
     workspace = "9 silent", -- Silent keyword stays inside the string
 })
 
--- ==========================================
--- APP SPECIFIC TWEAKS (Named Rules)
--- ==========================================
-
 hl.window_rule({
     name = "fix_gimp",
     match = { class = "^(gimp)$" },
-    border_color = "rgb(b3ff1a)",
     float = true,
-})
-
-hl.window_rule({
-    name = "float_dialogs",
-    match = { class = "^(org.freedesktop.impl.portal.*)$" },
-    float = true,
-    persistent_size = true,
-})
-
-hl.window_rule({
-    name = "steam_floating",
-    match = {
-        class = "^(steam)$",
-        title = "^(Friends List|Steam - News|.*Settings.*|.* - Chat|Players|Game Servers|Recordings &.*)$",
-    },
-    float = true,
-    center = true,
 })
 
 -- ==========================================
 -- ANONYMOUS RULES (Evaluated Last)
 -- ==========================================
-
--- OBS Popups
-hl.window_rule({
-    match = { class = "^(com.obsproject.Studio)$", title = "^(Settings|Projector.*)$" },
-    float = true,
-    center = true,
-})
-
--- VSCode Dialogs
-hl.window_rule({
-    match = { class = "^(code|visual-studio-code-bin)$", title = "^(Open Folder|Save As|Extension.*)$" },
-    float = true,
-})
 
 -- Main GIMP Window (Combined your two separate rules into one!)
 hl.window_rule({
@@ -128,13 +113,6 @@ hl.window_rule({
     float = true,
     center = true,
     size = { 500, 750 }, -- Absolute coordinates can be passed as numbers
-})
-
--- Modals (Popups)
-hl.window_rule({
-    match = { modal = true },
-    float = true,
-    decorate = false,
 })
 
 -- Universal Floating Rules (Catch-all)

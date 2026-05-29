@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Hyprland / Noctalia dynamically generated colors
-hyprland/.config/hypr/noctalia/noctalia-colors.conf
+hyprland/.config/hypr/noctalia/noctalia-colors.lua
 hyprland/.config/noctalia/colors.json
 
 # Neovim dynamically generated colorscheme files
