@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Framework Stow Package Manager & Dependency Resolver
+# Artisan-Style Framework Stow Package Manager & Dependency Resolver
 # =============================================================================
+# - Artisan CLI Interface: Manage dependencies & packages directly from terminal:
+#     ./stow.sh deps:add <pkg> <dep> [--required|--optional]
+#     ./stow.sh deps:remove <pkg> <dep>
+#     ./stow.sh deps:show <pkg>
+#     ./stow.sh make:package <name>
+#     ./stow.sh registry:add <tool> <binary_aliases> [distro:package]
+#     ./stow.sh scan [pkg]
 # - Data-driven architecture: zero hardcoded package declarations in script.
 # - Reads package manifests (`.stowdeps` per package) and central registry (`stow.registry`).
-# - Includes recursive auto-scanner (`./stow.sh scan`) to detect binary dependencies
-#   from script shebangs, commands, and aliases inside package files.
 # - Resolves Stow directory-folding conflicts by converting directory symlinks
 #   into real directory structures so GNU Stow manages file-level symlinks natively.
 # - Handles mutually exclusive packages (e.g. `terminal` vs `headless`).
@@ -68,7 +73,7 @@ detect_distro() {
     fi
 }
 
-# Dynamic package discovery: lists all package directories containing dotfiles
+# Dynamic package discovery
 get_all_packages() {
     local pkgs=()
     for d in "$DOTFILES_DIR"/*/; do
@@ -94,7 +99,6 @@ get_binary_aliases() {
 
     if [[ -f "$REGISTRY_FILE" ]]; then
         while IFS='=' read -r key val || [[ -n "$key" ]]; do
-            # Trim whitespace and skip comments/empty lines
             key="$(echo "$key" | xargs 2>/dev/null || true)"
             val="$(echo "$val" | xargs 2>/dev/null || true)"
 
@@ -181,8 +185,158 @@ read_manifest_key() {
     fi
 }
 
+# Writes/updates a key in a package's `.stowdeps` manifest file
+write_manifest_key() {
+    local pkg="$1"
+    local key="$2"
+    local new_val="$3"
+    local manifest="$DOTFILES_DIR/$pkg/.stowdeps"
+
+    mkdir -p "$DOTFILES_DIR/$pkg"
+
+    if [[ ! -f "$manifest" ]]; then
+        cat <<EOF > "$manifest"
+# Package Dependency Manifest for '$pkg'
+REQUIRED=""
+OPTIONAL=""
+EOF
+    fi
+
+    if grep -q "^${key}=" "$manifest" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=\"${new_val}\"|" "$manifest"
+    else
+        echo "${key}=\"${new_val}\"" >> "$manifest"
+    fi
+}
+
 # -----------------------------------------------------------------------------
-# Recursive Code Scanner (Auto-detects dependencies from package contents)
+# Artisan-Style CLI Commands
+# -----------------------------------------------------------------------------
+
+# Add a dependency to a package manifest
+cmd_deps_add() {
+    local pkg="$1"
+    local dep="$2"
+    local type="${3:---optional}"
+
+    if [[ -z "$pkg" || -z "$dep" ]]; then
+        error "Usage: $0 deps:add <package> <dependency_name> [--required|--optional]"
+        return 1
+    fi
+
+    local target_key="OPTIONAL"
+    if [[ "$type" == "--required" || "$type" == "-r" ]]; then
+        target_key="REQUIRED"
+    fi
+
+    local current_val
+    current_val="$(read_manifest_key "$pkg" "$target_key")"
+
+    if [[ " $current_val " =~ " $dep " ]]; then
+        warn "Dependency '${dep}' is already in ${target_key} for package '${pkg}'."
+        return 0
+    fi
+
+    local new_val
+    new_val="$(echo "$current_val $dep" | xargs)"
+    write_manifest_key "$pkg" "$target_key" "$new_val"
+    success "Added '${dep}' as ${target_key} dependency to package '${pkg}'."
+}
+
+# Remove a dependency from a package manifest
+cmd_deps_remove() {
+    local pkg="$1"
+    local dep="$2"
+
+    if [[ -z "$pkg" || -z "$dep" ]]; then
+        error "Usage: $0 deps:remove <package> <dependency_name>"
+        return 1
+    fi
+
+    local req_val
+    local opt_val
+    req_val="$(read_manifest_key "$pkg" "REQUIRED")"
+    opt_val="$(read_manifest_key "$pkg" "OPTIONAL")"
+
+    local new_req
+    local new_opt
+    new_req="$(echo "$req_val" | tr ' ' '\n' | grep -v "^${dep}$" | tr '\n' ' ' | xargs 2>/dev/null || true)"
+    new_opt="$(echo "$opt_val" | tr ' ' '\n' | grep -v "^${dep}$" | tr '\n' ' ' | xargs 2>/dev/null || true)"
+
+    write_manifest_key "$pkg" "REQUIRED" "$new_req"
+    write_manifest_key "$pkg" "OPTIONAL" "$new_opt"
+    success "Removed '${dep}' from package '${pkg}'."
+}
+
+# Display dependency manifest for a package
+cmd_deps_show() {
+    local pkg="$1"
+    if [[ -z "$pkg" ]]; then
+        error "Usage: $0 deps:show <package>"
+        return 1
+    fi
+
+    local manifest="$DOTFILES_DIR/$pkg/.stowdeps"
+    if [[ ! -f "$manifest" ]]; then
+        warn "Package '${pkg}' does not have a '.stowdeps' manifest file."
+        return 1
+    fi
+
+    echo -e "\n${CYAN}${BOLD}=== Manifest [.stowdeps] for '${pkg}' ===${NC}\n"
+    cat "$manifest"
+    echo ""
+}
+
+# Scaffold a new Stow package directory
+cmd_make_package() {
+    local pkg="$1"
+
+    if [[ -z "$pkg" ]]; then
+        error "Usage: $0 make:package <package_name>"
+        return 1
+    fi
+
+    local pkg_dir="$DOTFILES_DIR/$pkg"
+    if [[ -d "$pkg_dir" ]]; then
+        warn "Package directory '${pkg_dir}' already exists."
+    else
+        mkdir -p "$pkg_dir"
+        success "Created package directory: ${pkg_dir}"
+    fi
+
+    local manifest="$pkg_dir/.stowdeps"
+    if [[ ! -f "$manifest" ]]; then
+        cat <<EOF > "$manifest"
+# Package Dependency Manifest for '${pkg}'
+REQUIRED=""
+OPTIONAL=""
+EOF
+        success "Created manifest file: ${manifest}"
+    fi
+}
+
+# Add a binary alias or distro package mapping to stow.registry
+cmd_registry_add() {
+    local tool="$1"
+    local aliases="$2"
+    local distro_mapping="$3"
+
+    if [[ -z "$tool" || -z "$aliases" ]]; then
+        error "Usage: $0 registry:add <tool_name> <binary_aliases> [distro:package_name]"
+        return 1
+    fi
+
+    echo "${tool} = ${aliases}" >> "$REGISTRY_FILE"
+    if [[ -n "$distro_mapping" ]]; then
+        local distro="${distro_mapping%%:*}"
+        local pkg_name="${distro_mapping#*:}"
+        echo "${tool}@${distro} = ${pkg_name}" >> "$REGISTRY_FILE"
+    fi
+    success "Added '${tool}' mapping to '${REGISTRY_FILE}'"
+}
+
+# -----------------------------------------------------------------------------
+# Recursive Code Scanner
 # -----------------------------------------------------------------------------
 
 scan_package_dependencies() {
@@ -199,7 +353,7 @@ scan_package_dependencies() {
     local detected_shebangs=()
     local detected_cmds=()
 
-    # 1. Scan Shebangs (#!/bin/zsh, #!/usr/bin/env bash, etc.)
+    # 1. Scan Shebangs
     while IFS= read -r file; do
         if [[ -f "$file" ]]; then
             local first_line
@@ -214,7 +368,7 @@ scan_package_dependencies() {
         fi
     done < <(find "$pkg_dir" -type f 2>/dev/null)
 
-    # 2. Scan command invocations in text config/script files
+    # 2. Scan command invocations
     local known_tools=("starship" "fastfetch" "fzf" "eza" "bat" "fd" "rg" "kitty" "tmux" "nvim" "hyprland" "uwsm" "noctalia" "mpv" "grim" "slurp" "wl-clipboard" "git" "stow" "curl" "htop" "btop" "lazygit")
 
     for tool in "${known_tools[@]}"; do
@@ -231,7 +385,6 @@ scan_package_dependencies() {
     echo -e "  ${BOLD}Detected Shebangs (Required):${NC} ${unique_req[*]:-none}"
     echo -e "  ${BOLD}Detected Invocations (Optional):${NC} ${unique_opt[*]:-none}\n"
 
-    # Write or update .stowdeps manifest if missing
     local manifest="$pkg_dir/.stowdeps"
     if [[ ! -f "$manifest" ]]; then
         info "Auto-generating '.stowdeps' manifest for '${pkg}'..."
@@ -311,12 +464,10 @@ check_dependencies() {
     echo -e "\n${CYAN}${BOLD}=== Checking Package Dependencies & Optional Plugins ===${NC}\n"
 
     for pkg_name in "${all_packages[@]}"; do
-        # Skip unrelated packages if a specific package was requested
         if [[ -n "$target_pkg" && "$target_pkg" != "all" && "$pkg_name" != "$target_pkg" ]]; then
             continue
         fi
 
-        # If .stowdeps missing, run scan first
         if [[ ! -f "$DOTFILES_DIR/$pkg_name/.stowdeps" ]]; then
             scan_package_dependencies "$pkg_name"
         fi
@@ -566,22 +717,28 @@ list_packages() {
 # -----------------------------------------------------------------------------
 
 show_help() {
-    echo -e "${BOLD}Dotfiles Framework Stow Manager & Dependency Resolver${NC}"
-    echo -e "Usage: $0 [options] <command> [package]\n"
+    echo -e "${BOLD}Artisan-Style Dotfiles Framework Manager${NC}"
+    echo -e "Usage: $0 [options] <command> [arguments]\n"
     echo -e "Options:"
-    echo -e "  ${CYAN}-y, --install${NC}       Auto-confirm installation of missing dependencies/plugins"
-    echo -e "\nCommands:"
-    echo -e "  ${CYAN}check${NC} [pkg]         Detect missing dependencies & optional plugins"
-    echo -e "  ${CYAN}scan${NC} [pkg]          Recursively scan package content to detect & auto-generate .stowdeps"
-    echo -e "  ${CYAN}list${NC}                List all packages and stowed status"
-    echo -e "  ${CYAN}stow${NC} <pkg>          Stow a package with auto conflict resolution"
-    echo -e "  ${CYAN}unstow${NC} <pkg>        Unstow a package"
-    echo -e "  ${CYAN}restow${NC} <pkg>        Restow a package"
-    echo -e "  ${CYAN}fix-conflicts${NC}       Unfold directory symlinks & resolve conflicts"
-    echo -e "  ${CYAN}terminal${NC}            Stow desktop terminal package (unstows headless)"
-    echo -e "  ${CYAN}headless${NC}            Stow headless terminal package (unstows terminal)"
-    echo -e "  ${CYAN}all${NC}                 Stow standard desktop environment packages"
-    echo -e "  ${CYAN}help${NC}                Show this help menu"
+    echo -e "  ${CYAN}-y, --install${NC}                  Auto-confirm installation of missing dependencies/plugins"
+    echo -e "\nDependency Management Commands (Artisan-style):"
+    echo -e "  ${CYAN}deps:add${NC} <pkg> <dep> [--opt]   Add a dependency to package manifest"
+    echo -e "  ${CYAN}deps:remove${NC} <pkg> <dep>        Remove a dependency from package manifest"
+    echo -e "  ${CYAN}deps:show${NC} <pkg>               Display package manifest contents"
+    echo -e "  ${CYAN}make:package${NC} <name>            Scaffold a new Stow package directory & manifest"
+    echo -e "  ${CYAN}registry:add${NC} <tool> <alias>    Add binary alias/distro mapping to stow.registry"
+    echo -e "\nPackage & Stow Operations:"
+    echo -e "  ${CYAN}check${NC} [pkg]                    Detect missing dependencies & optional plugins"
+    echo -e "  ${CYAN}scan${NC} [pkg]                     Recursively scan package files to auto-detect dependencies"
+    echo -e "  ${CYAN}list${NC}                           List all packages and stowed status"
+    echo -e "  ${CYAN}stow${NC} <pkg>                     Stow a package with auto conflict resolution"
+    echo -e "  ${CYAN}unstow${NC} <pkg>                   Unstow a package"
+    echo -e "  ${CYAN}restow${NC} <pkg>                   Restow a package"
+    echo -e "  ${CYAN}fix-conflicts${NC}                  Unfold directory symlinks & resolve conflicts"
+    echo -e "  ${CYAN}terminal${NC}                       Stow desktop terminal package (unstows headless)"
+    echo -e "  ${CYAN}headless${NC}                       Stow headless terminal package (unstows terminal)"
+    echo -e "  ${CYAN}all${NC}                            Stow standard desktop environment packages"
+    echo -e "  ${CYAN}help${NC}                           Show this help menu"
 }
 
 main() {
@@ -602,15 +759,30 @@ main() {
     done
 
     local cmd="${1:-help}"
-    local pkg="$2"
+    shift || true
 
     case "$cmd" in
+        deps:add)
+            cmd_deps_add "$1" "$2" "$3"
+            ;;
+        deps:remove|deps:rm)
+            cmd_deps_remove "$1" "$2"
+            ;;
+        deps:show|deps:list)
+            cmd_deps_show "$1"
+            ;;
+        make:package|make:pkg)
+            cmd_make_package "$1"
+            ;;
+        registry:add)
+            cmd_registry_add "$1" "$2" "$3"
+            ;;
         check)
-            check_dependencies "$pkg"
+            check_dependencies "$1"
             ;;
         scan)
-            if [[ -n "$pkg" ]]; then
-                scan_package_dependencies "$pkg"
+            if [[ -n "$1" ]]; then
+                scan_package_dependencies "$1"
             else
                 read -r -a packages <<< "$(get_all_packages)"
                 for p in "${packages[@]}"; do
@@ -622,25 +794,25 @@ main() {
             list_packages
             ;;
         stow)
-            if [[ -z "$pkg" ]]; then
+            if [[ -z "$1" ]]; then
                 error "Please specify a package name to stow!"
                 exit 1
             fi
-            stow_package "$pkg"
+            stow_package "$1"
             ;;
         unstow)
-            if [[ -z "$pkg" ]]; then
+            if [[ -z "$1" ]]; then
                 error "Please specify a package name to unstow!"
                 exit 1
             fi
-            unstow_package "$pkg"
+            unstow_package "$1"
             ;;
         restow)
-            if [[ -z "$pkg" ]]; then
+            if [[ -z "$1" ]]; then
                 error "Please specify a package name to restow!"
                 exit 1
             fi
-            restow_package "$pkg"
+            restow_package "$1"
             ;;
         fix-conflicts)
             unfold_directory_symlinks
