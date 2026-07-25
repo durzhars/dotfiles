@@ -2,7 +2,8 @@
 # =============================================================================
 # Stow Package Manager & Conflict Resolver for Dotfiles
 # =============================================================================
-# - Auto-detects missing CLI / GUI dependencies based on host OS/distro.
+# - Auto-detects required dependencies AND optional plugins/tools per package.
+# - Interactively prompts user to install missing required tools & optional plugins.
 # - Resolves Stow directory-folding conflicts by converting directory symlinks
 #   into real directory structures so GNU Stow manages file-level symlinks natively.
 # - Handles mutually exclusive packages (e.g. `terminal` vs `headless`).
@@ -14,6 +15,7 @@ set -e
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+AUTO_INSTALL=false
 
 # Color Definitions
 RED='\033[0;31m'
@@ -26,20 +28,29 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Package Mutually Exclusive Mapping
-# format: "pkg1:pkg2" means stowing pkg1 will auto-unstow pkg2 if present
 MUTUAL_EXCLUSIONS=(
     "headless:terminal"
     "terminal:headless"
 )
 
-# Package Dependency Mapping
-# format: "pkg_name|cmd1 cmd2 cmd3..."
-PACKAGE_DEPS=(
+# Required Dependencies per Package
+# format: "pkg_name|cmd1 cmd2..."
+PACKAGE_REQUIRED_DEPS=(
     "common|stow git"
-    "terminal|zsh bash starship fastfetch fzf eza bat fd rg kitty"
-    "headless|zsh bash starship fastfetch fzf eza bat fd rg tmux"
-    "nvim|nvim git fd rg"
-    "hyprland|hyprland uwsm noctalia mpv"
+    "terminal|zsh bash"
+    "headless|zsh bash tmux"
+    "nvim|nvim git"
+    "hyprland|hyprland"
+)
+
+# Optional Plugins & Tools per Package
+# format: "pkg_name|plugin1 plugin2..."
+PACKAGE_OPTIONAL_PLUGINS=(
+    "common|curl"
+    "terminal|starship fastfetch fzf eza bat fd rg kitty zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
+    "headless|starship fastfetch fzf eza bat fd rg htop btop zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
+    "nvim|fd rg lazygit gcc make npm python3"
+    "hyprland|uwsm noctalia mpv grim slurp wl-clipboard"
 )
 
 # -----------------------------------------------------------------------------
@@ -74,6 +85,31 @@ detect_distro() {
     fi
 }
 
+# Check if a tool or plugin is installed on the host system
+is_tool_installed() {
+    local item="$1"
+
+    # 1. Check binary command
+    if command -v "$item" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # 2. Check Zsh system plugins
+    case "$item" in
+        zsh-autosuggestions)
+            [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && return 0
+            ;;
+        zsh-syntax-highlighting)
+            [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && return 0
+            ;;
+        zsh-history-substring-search)
+            [[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]] && return 0
+            ;;
+    esac
+
+    return 1
+}
+
 # Display package installation command recommendation
 get_install_cmd() {
     local distro="$1"
@@ -85,10 +121,27 @@ get_install_cmd() {
             echo "sudo pacman -S --needed ${pkgs[*]}"
             ;;
         ubuntu|debian|pop|mint)
-            echo "sudo apt update && sudo apt install -y ${pkgs[*]}"
+            # Map tool names to debian package names if needed
+            local deb_pkgs=()
+            for p in "${pkgs[@]}"; do
+                case "$p" in
+                    fd) deb_pkgs+=("fd-find") ;;
+                    rg) deb_pkgs+=("ripgrep") ;;
+                    *) deb_pkgs+=("$p") ;;
+                esac
+            done
+            echo "sudo apt update && sudo apt install -y ${deb_pkgs[*]}"
             ;;
         fedora|rhel|centos)
-            echo "sudo dnf install -y ${pkgs[*]}"
+            local dnf_pkgs=()
+            for p in "${pkgs[@]}"; do
+                case "$p" in
+                    fd) dnf_pkgs+=("fd-find") ;;
+                    rg) dnf_pkgs+=("ripgrep") ;;
+                    *) dnf_pkgs+=("$p") ;;
+                esac
+            done
+            echo "sudo dnf install -y ${dnf_pkgs[*]}"
             ;;
         alpine)
             echo "sudo apk add ${pkgs[*]}"
@@ -102,47 +155,132 @@ get_install_cmd() {
     esac
 }
 
+# Execute installation command for missing packages
+install_packages() {
+    local distro="$1"
+    shift
+    local pkgs=("$@")
+
+    local cmd
+    cmd="$(get_install_cmd "$distro" "${pkgs[@]}")"
+
+    info "Executing package installation command:"
+    echo -e "${CYAN}${BOLD}${cmd}${NC}\n"
+
+    if eval "$cmd"; then
+        success "Package installation completed successfully!"
+    else
+        error "Package installation failed or was aborted."
+        return 1
+    fi
+}
+
 # -----------------------------------------------------------------------------
-# Dependency Checker
+# Dependency & Optional Plugin Checker
 # -----------------------------------------------------------------------------
 
 check_dependencies() {
     local target_pkg="$1"
     local distro
     distro=$(detect_distro)
-    local missing_all=()
+    local missing_required=()
+    local missing_optional=()
 
-    echo -e "\n${CYAN}${BOLD}=== Checking System Dependencies ===${NC}\n"
+    echo -e "\n${CYAN}${BOLD}=== Checking Package Dependencies & Optional Plugins ===${NC}\n"
 
-    for entry in "${PACKAGE_DEPS[@]}"; do
+    # Scan all relevant packages
+    for entry in "${PACKAGE_REQUIRED_DEPS[@]}"; do
         local pkg_name="${entry%%|*}"
-        local tools="${entry#*|}"
+        local req_tools="${entry#*|}"
 
-        # If a specific package was requested, skip unrelated packages (except common)
+        # Skip unrelated packages if a specific package was requested
         if [[ -n "$target_pkg" && "$target_pkg" != "all" && "$pkg_name" != "common" && "$pkg_name" != "$target_pkg" ]]; then
             continue
         fi
 
         echo -e "${BOLD}Package [${pkg_name}]:${NC}"
 
-        for tool in $tools; do
-            if command -v "$tool" >/dev/null 2>&1; then
-                echo -e "  ${GREEN}✓${NC} ${tool}"
+        # 1. Check Required Dependencies
+        echo -e "  ${BOLD}Required Dependencies:${NC}"
+        for tool in $req_tools; do
+            if is_tool_installed "$tool"; then
+                echo -e "    ${GREEN}✓${NC} ${tool}"
             else
-                echo -e "  ${RED}✗${NC} ${tool} ${YELLOW}(missing)${NC}"
-                missing_all+=("$tool")
+                echo -e "    ${RED}✗${NC} ${tool} ${RED}(REQUIRED MISSING)${NC}"
+                missing_required+=("$tool")
             fi
         done
+
+        # 2. Check Optional Plugins & Tools
+        local opt_tools=""
+        for opt_entry in "${PACKAGE_OPTIONAL_PLUGINS[@]}"; do
+            if [[ "${opt_entry%%|*}" == "$pkg_name" ]]; then
+                opt_tools="${opt_entry#*|}"
+                break
+            fi
+        done
+
+        if [[ -n "$opt_tools" ]]; then
+            echo -e "  ${BOLD}Optional Plugins & Tools:${NC}"
+            for tool in $opt_tools; do
+                if is_tool_installed "$tool"; then
+                    echo -e "    ${GREEN}✓${NC} ${tool}"
+                else
+                    echo -e "    ${YELLOW}⚡${NC} ${tool} ${YELLOW}(optional missing)${NC}"
+                    missing_optional+=("$tool")
+                fi
+            done
+        fi
         echo ""
     done
 
-    if [[ ${#missing_all[@]} -gt 0 ]]; then
-        read -r -a unique_missing <<< "$(echo "${missing_all[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
-        warn "Missing dependencies detected for your environment!"
-        echo -e "${BOLD}Recommended installation command (${distro}):${NC}"
-        echo -e "  ${CYAN}$(get_install_cmd "$distro" "${unique_missing[@]}")${NC}\n"
-    else
-        success "All required dependencies are installed!"
+    # De-duplicate missing arrays
+    local unique_req=()
+    local unique_opt=()
+    if [[ ${#missing_required[@]} -gt 0 ]]; then
+        read -r -a unique_req <<< "$(echo "${missing_required[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+    fi
+    if [[ ${#missing_optional[@]} -gt 0 ]]; then
+        read -r -a unique_opt <<< "$(echo "${missing_optional[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+    fi
+
+    # Interactive / Automatic Installation Prompts
+    if [[ ${#unique_req[@]} -gt 0 ]]; then
+        error "Missing REQUIRED dependencies: ${unique_req[*]}"
+        local req_cmd
+        req_cmd="$(get_install_cmd "$distro" "${unique_req[@]}")"
+        echo -e "${BOLD}Installation Command (${distro}):${NC} ${CYAN}${req_cmd}${NC}\n"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            install_packages "$distro" "${unique_req[@]}"
+        elif [[ -t 0 ]]; then
+            read -p "Would you like to install missing REQUIRED dependencies now? [Y/n] " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+                install_packages "$distro" "${unique_req[@]}"
+            fi
+        fi
+    fi
+
+    if [[ ${#unique_opt[@]} -gt 0 ]]; then
+        warn "Missing OPTIONAL plugins & tools: ${unique_opt[*]}"
+        local opt_cmd
+        opt_cmd="$(get_install_cmd "$distro" "${unique_opt[@]}")"
+        echo -e "${BOLD}Installation Command (${distro}):${NC} ${CYAN}${opt_cmd}${NC}\n"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            install_packages "$distro" "${unique_opt[@]}"
+        elif [[ -t 0 ]]; then
+            read -p "Would you like to install missing OPTIONAL plugins & tools now? [y/N] " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                install_packages "$distro" "${unique_opt[@]}"
+            fi
+        fi
+    fi
+
+    if [[ ${#unique_req[@]} -eq 0 && ${#unique_opt[@]} -eq 0 ]]; then
+        success "All required dependencies and optional plugins are installed!"
     fi
 }
 
@@ -268,7 +406,7 @@ stow_package() {
     local pkg="$1"
     info "Stowing package '${pkg}'..."
 
-    # Check dependencies first
+    # Check dependencies & plugins first
     check_dependencies "$pkg"
 
     # Handle mutual exclusions (e.g. terminal vs headless)
@@ -332,9 +470,11 @@ list_packages() {
 
 show_help() {
     echo -e "${BOLD}Dotfiles Stow Sync & Conflict Resolver${NC}"
-    echo -e "Usage: $0 <command> [package]\n"
-    echo -e "Commands:"
-    echo -e "  ${CYAN}check${NC} [pkg]         Auto-detect missing CLI/GUI dependencies"
+    echo -e "Usage: $0 [options] <command> [package]\n"
+    echo -e "Options:"
+    echo -e "  ${CYAN}-y, --install${NC}       Auto-confirm installation of missing dependencies/plugins"
+    echo -e "\nCommands:"
+    echo -e "  ${CYAN}check${NC} [pkg]         Detect missing dependencies & optional plugins"
     echo -e "  ${CYAN}list${NC}                List all packages and stowed status"
     echo -e "  ${CYAN}stow${NC} <pkg>          Stow a package with auto conflict resolution"
     echo -e "  ${CYAN}unstow${NC} <pkg>        Unstow a package"
@@ -347,6 +487,23 @@ show_help() {
 }
 
 main() {
+    # Parse options
+    while [[ "$1" == -* ]]; do
+        case "$1" in
+            -y|--install)
+                AUTO_INSTALL=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
     local cmd="${1:-help}"
     local pkg="$2"
 
