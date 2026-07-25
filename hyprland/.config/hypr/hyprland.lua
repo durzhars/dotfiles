@@ -9,10 +9,17 @@ require("noctalia.noctalia-colors")
 --- require("modules.animations." .. active_animation)
 
 hl.monitor({
-    output = "",
+    output = "eDP-1",
     mode = "1920x1200@60",
     position = "0x0",
+    scale = 1,
     bitdepth = 10,
+})
+
+hl.monitor({
+    output = "HDMI-A-1",
+    mode = "2560x1440@59.95",
+    position = "1920x0",
 })
 
 hl.on("hyprland.start", function()

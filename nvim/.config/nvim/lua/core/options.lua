@@ -17,6 +17,8 @@ opt.ttimeoutlen = 50
 opt.tabstop = 4
 opt.shiftwidth = 4
 opt.expandtab = true
+opt.autoindent = true
+opt.smartindent = true
 
 -- Window Splits & Space Context
 opt.scrolloff = 10

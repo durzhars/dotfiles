@@ -15,8 +15,8 @@ alias ....='cd ../../..'
 alias icat='kitten icat'
 alias cat='bat'
 
-alias grep='rg --color=auto'
-alias find='fd'
+#alias grep='rg --color=auto'
+#alias find='fd'
 alias rg='rg --hidden --glob "!.git"'
 
 [ "$TERM" = "xterm-kitty" ] && alias ssh="kitty +kitten ssh"

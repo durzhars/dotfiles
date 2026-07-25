@@ -6,3 +6,17 @@ post_hook = "hyprctl reload"
 [theme.templates.user.neovim]
 input_path = "./templates/neovim.lua"
 output_path = "~/Projects/colors.nvim/lua/dcolorscheme/neovim.lua"
+
+[theme.templates.user.zen_browser_chrome]
+input_path = "./templates/zen-userChrome.css"
+output_path = "./zen-browser/zen-userChrome.css"
+post_hook = "~/.config/noctalia/zen-browser/apply.sh"
+
+[theme.templates.user.zen_browser_content]
+input_path = "./templates/zen-userContent.css"
+output_path = "./zen-browser/zen-userContent.css"
+post_hook = "~/.config/noctalia/zen-browser/apply.sh"
+
+[theme.templates.user.lazygit]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/lazygit.yml"
+output_path = "$XDG_CONFIG_HOME/lazygit/config.yml"

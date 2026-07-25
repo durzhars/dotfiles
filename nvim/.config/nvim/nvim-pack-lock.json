@@ -1,5 +1,9 @@
 {
   "plugins": {
+    "LuaSnip": {
+      "rev": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24",
+      "src": "https://github.com/L3MON4D3/LuaSnip"
+    },
     "alpha-nvim": {
       "rev": "6c6a89d5b068b5251c8bdf0dd57bb921bcfeeb09",
       "src": "https://github.com/goolord/alpha-nvim"
@@ -15,6 +19,10 @@
     "conform.nvim": {
       "rev": "dca1a190aa85f9065979ef35802fb77131911106",
       "src": "https://github.com/stevearc/conform.nvim"
+    },
+    "friendly-snippets": {
+      "rev": "6cd7280adead7f586db6fccbd15d2cac7e2188b9",
+      "src": "https://github.com/rafamadriz/friendly-snippets"
     },
     "fzf-lua": {
       "rev": "ca139b8fec043057038c69ce2b34cf4b8b83746e",
@@ -33,7 +41,7 @@
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
-      "rev": "e54f5bf5f12c560da31c17eee5b3e1bd369f3ff9",
+      "rev": "16ba83bfc8a25f52bb545134f5bee082b195c460",
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.files": {
@@ -43,6 +51,10 @@
     "mini.indentscope": {
       "rev": "ad19b1f02223391f3d40440f7ff10607f0043585",
       "src": "https://github.com/nvim-mini/mini.indentscope"
+    },
+    "mini.notify": {
+      "rev": "7e75de73c60590e3f35d5cecd5677a68a437fc54",
+      "src": "https://github.com/nvim-mini/mini.notify"
     },
     "mini.pairs": {
       "rev": "30cf2f01c4aaa2033db67376b9924fa2442c05d6",
@@ -63,6 +75,10 @@
     "nvim-web-devicons": {
       "rev": "2795c26c916bb3c57dde308b82be51971fa92747",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
+    },
+    "tree-sitter-manager.nvim": {
+      "rev": "bb66b815aff01e87b2e26be995116be8d2f91474",
+      "src": "https://github.com/romus204/tree-sitter-manager.nvim"
     },
     "which-key.nvim": {
       "rev": "3aab2147e74890957785941f0c1ad87d0a44c15a",

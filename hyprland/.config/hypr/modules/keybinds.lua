@@ -1,11 +1,12 @@
 local fileManager = "dolphin"
-local browser = "brave"
+local browser = "zen-browser"
 local screenshot = "~/.config/hypr/scripts/screenshot.sh"
+local toggle_audio = "~/.config/hypr/scripts/toggle-audio-port.sh"
 local ipc = "noctalia msg "
 local terminal = "kitty"
 local btop = "kitty -e btop"
 
-local mainMod = "SUPER " -- Sets "Windows" key as main modifier
+local mainMod = "SUPER "
 local dsp = hl.dsp
 local cmd = dsp.exec_cmd
 local win = dsp.window
@@ -56,14 +57,16 @@ binder.create_bind({
         mainMod .. "+ M",
         mainMod .. "+ W",
         mainMod .. "+ SHIFT + P",
+        mainMod .. "+ C",
     },
     exec = {
         cmd(ipc .. "panel-toggle launcher"),
         cmd(ipc .. "panel-toggle control-center"),
         cmd(ipc .. "settings-toggle"),
-        cmd(ipc .. "screen-lock"),
+        cmd(ipc .. "session lock"),
         cmd(ipc .. "panel-toggle wallpaper"),
         cmd(ipc .. "panel-toggle session"),
+        cmd(ipc .. "panel-toggle clipboard"),
     },
 })
 
@@ -189,6 +192,7 @@ binder.create_bind({
         "XF86AudioLowerVolume",
         "XF86MonBrightnessUp",
         "XF86MonBrightnessDown",
+        mainMod .. "+ F12",
         { "XF86AudioMute", mainMod .. "+ I" },
         { "XF86AudioNext", mainMod .. "+ O" },
         { "XF86AudioPrev", mainMod .. "+ U" },
@@ -198,6 +202,7 @@ binder.create_bind({
         cmd(ipc .. "volume-down"),
         cmd(ipc .. "brightness-up"),
         cmd(ipc .. "brightness-down"),
+        cmd(toggle_audio),
         cmd(ipc .. "media toggle"),
         cmd(ipc .. "media next"),
         cmd(ipc .. "media previous"),

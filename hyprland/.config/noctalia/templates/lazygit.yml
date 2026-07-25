@@ -1,0 +1,33 @@
+# ~/.config/noctalia/templates/lazygit.yml
+
+gui:
+  theme:
+    activeBorderColor:
+      - '{{colors.primary.default.hex}}'
+      - bold
+    inactiveBorderColor:
+      - '{{colors.outline.default.hex}}'
+    searchingActiveBorderColor:
+      - '{{colors.tertiary.default.hex}}'
+      - bold
+    optionsTextColor:
+      - '{{colors.primary.default.hex}}'
+    selectedLineBgColor:
+      - '{{colors.surface_container_high.default.hex}}'
+    inactiveViewSelectedLineBgColor:
+      - '{{colors.surface_container.default.hex}}'
+    cherryPickedCommitFgColor:
+      - '{{colors.primary.default.hex}}'
+    cherryPickedCommitBgColor:
+      - '{{colors.surface_container_highest.default.hex}}'
+    markedBaseCommitFgColor:
+      - '{{colors.on_tertiary_container.default.hex}}'
+    markedBaseCommitBgColor:
+      - '{{colors.tertiary_container.default.hex}}'
+    unstagedChangesColor:
+      - '{{colors.error.default.hex}}'
+    defaultFgColor:
+      - '{{colors.on_surface.default.hex}}'
+
+  authorColors:
+    '*': '{{colors.secondary.default.hex}}'

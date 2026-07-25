@@ -61,7 +61,7 @@ hl.window_rule({
 
 hl.window_rule({
     name = "browsers",
-    match = { class = "^(brave.*)$" },
+    match = { class = "^(brave|zen.*)$" },
     workspace = "2",
 })
 

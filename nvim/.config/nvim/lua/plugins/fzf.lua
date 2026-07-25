@@ -1,3 +1,4 @@
+-- ~/.config/nvim/lua/plugins/fzf.lua
 local fzf = require("fzf-lua")
 
 fzf.setup({

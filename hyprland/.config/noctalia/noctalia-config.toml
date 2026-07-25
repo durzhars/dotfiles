@@ -1,0 +1,21 @@
+# ~/.config/noctalia/noctalia-config.toml
+
+[theme.templates.custom_colors.syntax_keyword]
+color = "#c678dd" # Base Purple
+blend = true
+
+[theme.templates.custom_colors.syntax_string]
+color = "#98c379" # Base Green
+blend = true
+
+[theme.templates.custom_colors.syntax_type]
+color = "#e5c07b" # Base Yellow
+blend = true
+
+[theme.templates.custom_colors.syntax_variable]
+color = "#56b6c2" # Base Cyan
+blend = true
+
+[theme.templates.custom_colors.syntax_constant]
+color = "#d19a66" # Base Orange
+blend = true

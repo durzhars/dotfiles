@@ -1,3 +1,4 @@
+-- ~/.config/nvim/lua/core/keymaps.lua
 local map = vim.keymap.set
 
 -- Leader Keys
@@ -21,3 +22,7 @@ map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete Buffer" })
 -- Visual Mode
 map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move block down" })
 map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move block up" })
+
+-- Tools
+map("n", "<leader>cm", "<cmd>Mason<CR>", { desc = "Open Mason UI" })
+map("n", "<leader>ch", "<cmd>checkhealth lsp<CR>", { desc = "LSP Health Check" })

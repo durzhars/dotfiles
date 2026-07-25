@@ -1,3 +1,4 @@
+-- ~/.config/nvim/lua/plugins/conform.lua
 require("conform").setup({
 	formatters_by_ft = {
 		php = { "php_cs_fixer" },
@@ -6,11 +7,6 @@ require("conform").setup({
 		javascript = { "prettier" },
 		json = { "prettier" },
 		markdown = { "prettier" },
-	},
-	formatters = {
-		php_cs_fixer = {
-			args = { "fix", "$FILENAME", "--rules=@PSR12", "--using-cache=no", "--no-interaction" },
-		},
 	},
 })
 

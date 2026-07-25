@@ -1,11 +1,11 @@
 hl.config({
     general = {
-        gaps_in = 6,
+        gaps_in = 5,
         gaps_out = 10,
         border_size = 2,
         resize_on_border = true,
         allow_tearing = true,
-        layout = "dwindle",
+        layout = "scrolling",
         snap = {
             enabled = true,
             window_gap = 6,
@@ -13,20 +13,20 @@ hl.config({
         },
     },
     decoration = {
-        rounding = 10,
+        rounding = 8,
         rounding_power = 2.5,
-        active_opacity = 0.95,
-        inactive_opacity = 0.8,
+        active_opacity = 0.9,
+        inactive_opacity = 0.86,
         shadow = {
-            enabled = false,
-            range = 4,
-            render_power = 3,
+            enabled = true,
+            range = 5,
+            render_power = 5,
             color = "rgba(1a1a1aee)",
         },
         blur = {
             enabled = true,
-            size = 5,
-            passes = 3,
+            size = 3,
+            passes = 5,
             vibrancy = 0.1696,
         },
     },
@@ -34,7 +34,7 @@ hl.config({
         kb_layout = "us",
         repeat_rate = 25,
         repeat_delay = 150,
-        follow_mouse = 1,
+        follow_mouse = 2,
         touchpad = {
             natural_scroll = true,
         },
@@ -48,11 +48,10 @@ hl.config({
 })
 
 hl.layer_rule({
-    name = "noctalia",
     match = {
-        namespace = "noctalia-background-.*$",
+        namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd)$",
     },
-    ignore_alpha = 0.5,
     blur = true,
+    ignore_alpha = 0.55,
     blur_popups = true,
 })

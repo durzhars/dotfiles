@@ -2,13 +2,15 @@
 
 require("conform").setup({
 	formatters_by_ft = {
-		php = { "php_cs_fixer", "prettier" },
+		php = { "php_cs_fixer" },
+		blade = { "blade-formatter" },
+		python = { "ruff" },
 		lua = { "stylua" },
 		rust = { "rustfmt", lsp_format = "fallback" },
-		javascript = { "prettier" },
-		html = { "prettier" },
-		css = { "prettier" },
-		json = { "prettier" },
+		javascript = { "prettierd" },
+		html = { "prettierd" },
+		css = { "prettierd" },
+		json = { "prettierd" },
 		sh = { "shfmt" },
 		bash = { "shfmt" },
 		zsh = { "shfmt" },
@@ -18,21 +20,19 @@ require("conform").setup({
 		php_cs_fixer = {
 			prepend_args = { "--rules=@PSR12", "--using-cache=no", "--no-interaction" },
 		},
-		prettier = {
+		prettierd = {
 			prepend_args = function()
 				return {
 					"--tab-width",
 					"4",
 					"--single-quote",
-					"--config-precedence",
-					"cli-override", -- Forces CLI args to take precedence
 				}
 			end,
 		},
 	},
 	format_on_save = {
 		-- These options will be passed to conform.format()
-		timeout_ms = 500,
+		timeout_ms = 1500,
 		lsp_format = "first",
 	},
 })

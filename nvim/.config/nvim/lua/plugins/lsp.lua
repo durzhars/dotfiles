@@ -30,40 +30,53 @@ vim.lsp.config("bashls", {
 vim.lsp.config("intelephense", {
 	capabilities = capabilities,
 	settings = {
-		stubs = {
-			"apache",
-			"bcmath",
-			"bz2",
-			"calendar",
-			"Core",
-			"curl",
-			"date",
-			"dom",
-			"filter",
-			"gd",
-			"hash",
-			"iconv",
-			"json",
-			"libxml",
-			"mbstring",
-			"mysqli",
-			"mysqlnd",
-			"openssl",
-			"pcre",
-			"PDO",
-			"pdo_mysql",
-			"session",
-			"standard",
-			"xml",
-			"zip",
-		},
-		searchPaths = {
-			"app",
+		intelephense = {
+			telemetry = { enabled = false },
+			searchPaths = { "app", "vendor", "." },
+			files = {
+				maxMemory = 2048,
+				maxSize = 15000000,
+				exclude = {
+					"**/.git/**",
+					"**/node_modules/**",
+					"**/storage/framework/**",
+					"**/storage/logs/**",
+					"**/bootstrap/cache/**",
+					"**/vendor/composer/autoload_classmap.php",
+					"**/vendor/composer/autoload_static.php",
+					"**/vendor/fakerphp/faker/src/Faker/Provider/nl_BE/Text.php",
+				},
+			},
+			stubs = {
+				"apache",
+				"bcmath",
+				"bz2",
+				"calendar",
+				"Core",
+				"curl",
+				"date",
+				"dom",
+				"filter",
+				"gd",
+				"hash",
+				"iconv",
+				"json",
+				"libxml",
+				"mbstring",
+				"mysqli",
+				"mysqlnd",
+				"openssl",
+				"pcre",
+				"PDO",
+				"pdo_mysql",
+				"session",
+				"standard",
+				"xml",
+				"zip",
+			},
 		},
 	},
-})
-
--- vim.api.nvim_create_autocmd("FileType", {
+}) -- vim.api.nvim_create_autocmd("FileType", {
 -- 	pattern = "php",
 -- 	desc = "Forcefully start Intelephense",
 -- 	callback = function()
@@ -102,12 +115,13 @@ require("mason-lspconfig").setup({
 
 vim.lsp.enable("clangd")
 vim.lsp.enable("jdtls")
-vim.lsp.enable("pyright")
+vim.lsp.enable("ruff")
 vim.lsp.enable("lua_ls")
 vim.lsp.enable("html")
 vim.lsp.enable("cssls")
 vim.lsp.enable("ts_ls")
 vim.lsp.enable("intelephense")
+vim.lsp.enable("laravel_ls")
 vim.lsp.enable("bashls")
 
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -116,9 +130,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		local map = function(keys, func, desc)
 			vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
 		end
+		-- Navigation & Info (Free in Intelephense and all other servers)
 		map("gd", vim.lsp.buf.definition, "Goto Definition")
 		map("K", vim.lsp.buf.hover, "Hover Documentation")
-		map("<leader>cr", vim.lsp.buf.rename, "Rename")
-		map("<leader>ca", vim.lsp.buf.code_action, "Code Action")
+		map("gs", vim.lsp.buf.signature_help, "Signature Help")
+		-- Diagnostics (Powered by Neovim core, 100% free forever)
+		map("<leader>cd", vim.diagnostic.open_float, "Show Line Diagnostics")
+		map("<leader>cq", vim.diagnostic.setloclist, "Diagnostics Quickfix List")
 	end,
 })

@@ -1,9 +1,9 @@
-local primary = "rgb(dcc66e)"
-local secondary = "rgb(15130b)"
-local tertiary = "rgb(a9d0b3)"
-local surface = "rgb(15130b)"
-local surfaceLowest = "rgb(100e07)"
-local surfaceHighest = "rgb(38352b)"
+local primary = "rgb(9ecaff)"
+local secondary = "rgb(111417)"
+local tertiary = "rgb(f0b0fc)"
+local surface = "rgb(111417)"
+local surfaceLowest = "rgb(0c0e12)"
+local surfaceHighest = "rgb(323539)"
 local error = "rgb(ffb4ab)"
 
 hl.config({
