@@ -1,29 +1,15 @@
+#define _GNU_SOURCE
+#define _DEFAULT_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #include "checker.h"
+#include "registry.h"
 #include <termios.h>
 
-static void get_distro_pkg_name(const char *tool, const char *distro, char *out, size_t out_size) {
-    if (strcmp(tool, "fd") == 0) {
-        if (strcmp(distro, "ubuntu") == 0 || strcmp(distro, "debian") == 0 ||
-            strcmp(distro, "pop") == 0 || strcmp(distro, "mint") == 0) {
-            snprintf(out, out_size, "fd-find");
-            return;
-        }
-    } else if (strcmp(tool, "rg") == 0) {
-        if (strcmp(distro, "ubuntu") == 0 || strcmp(distro, "debian") == 0 ||
-            strcmp(distro, "pop") == 0 || strcmp(distro, "mint") == 0) {
-            snprintf(out, out_size, "ripgrep");
-            return;
-        }
-    }
-    snprintf(out, out_size, "%s", tool);
-}
-
-static void build_install_command(const char *distro, const StringArray *pkgs, char *cmd, size_t cmd_size) {
+static void build_install_command(const char *dotfiles_dir, const char *distro, const StringArray *pkgs, char *cmd, size_t cmd_size) {
     char pkg_list[1024] = {0};
     for (size_t i = 0; i < pkgs->count; i++) {
         char distro_pkg[256];
-        get_distro_pkg_name(pkgs->items[i], distro, distro_pkg, sizeof(distro_pkg));
+        registry_get_distro_pkg(dotfiles_dir, pkgs->items[i], distro, distro_pkg, sizeof(distro_pkg));
         strcat(pkg_list, distro_pkg);
         if (i + 1 < pkgs->count) strcat(pkg_list, " ");
     }
@@ -73,7 +59,7 @@ void check_package_dependencies(const char *dotfiles_dir, const char *target_pkg
         if (manifest.required.count > 0) {
             for (size_t r = 0; r < manifest.required.count; r++) {
                 const char *tool = manifest.required.items[r];
-                if (is_tool_in_path(tool)) {
+                if (is_tool_installed_dynamic(dotfiles_dir, tool)) {
                     printf("    %s✓%s %s\n", COLOR_GREEN, COLOR_RESET, tool);
                 } else {
                     printf("    %s✗%s %s %s(REQUIRED MISSING)%s\n", COLOR_RED, COLOR_RESET, tool, COLOR_RED, COLOR_RESET);
@@ -88,7 +74,7 @@ void check_package_dependencies(const char *dotfiles_dir, const char *target_pkg
         if (manifest.optional.count > 0) {
             for (size_t o = 0; o < manifest.optional.count; o++) {
                 const char *tool = manifest.optional.items[o];
-                if (is_tool_in_path(tool)) {
+                if (is_tool_installed_dynamic(dotfiles_dir, tool)) {
                     printf("    %s✓%s %s\n", COLOR_GREEN, COLOR_RESET, tool);
                 } else {
                     printf("    %s⚡%s %s %s(optional missing)%s\n", COLOR_YELLOW, COLOR_RESET, tool, COLOR_YELLOW, COLOR_RESET);
@@ -106,7 +92,7 @@ void check_package_dependencies(const char *dotfiles_dir, const char *target_pkg
     if (missing_req.count > 0) {
         log_error("Missing REQUIRED dependencies!");
         char install_cmd[1024];
-        build_install_command(distro, &missing_req, install_cmd, sizeof(install_cmd));
+        build_install_command(dotfiles_dir, distro, &missing_req, install_cmd, sizeof(install_cmd));
         printf("%sInstallation Command (%s):%s %s%s%s\n\n", COLOR_BOLD, distro, COLOR_RESET, COLOR_CYAN, install_cmd, COLOR_RESET);
 
         if (auto_install) {
@@ -124,7 +110,7 @@ void check_package_dependencies(const char *dotfiles_dir, const char *target_pkg
     if (missing_opt.count > 0) {
         log_warn("Missing OPTIONAL plugins & tools!");
         char install_cmd[1024];
-        build_install_command(distro, &missing_opt, install_cmd, sizeof(install_cmd));
+        build_install_command(dotfiles_dir, distro, &missing_opt, install_cmd, sizeof(install_cmd));
         printf("%sInstallation Command (%s):%s %s%s%s\n\n", COLOR_BOLD, distro, COLOR_RESET, COLOR_CYAN, install_cmd, COLOR_RESET);
 
         if (auto_install) {

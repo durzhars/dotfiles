@@ -79,31 +79,8 @@ bool is_symlink(const char *path) {
     return false;
 }
 
-bool is_tool_in_path(const char *tool) {
-    if (!tool || strlen(tool) == 0) return false;
-
-    // Special tool checks
-    if (strcmp(tool, "wl-clipboard") == 0) {
-        return is_tool_in_path("wl-copy") || is_tool_in_path("wl-paste");
-    }
-    if (strcmp(tool, "fd") == 0) {
-        return is_tool_in_path("fd") || is_tool_in_path("fdfind");
-    }
-    if (strcmp(tool, "zsh-autosuggestions") == 0) {
-        return access("/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh", R_OK) == 0 ||
-               access("/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh", R_OK) == 0 ||
-               access("/home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh", R_OK) == 0;
-    }
-    if (strcmp(tool, "zsh-syntax-highlighting") == 0) {
-        return access("/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh", R_OK) == 0 ||
-               access("/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh", R_OK) == 0 ||
-               access("/home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh", R_OK) == 0;
-    }
-    if (strcmp(tool, "zsh-history-substring-search") == 0) {
-        return access("/usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh", R_OK) == 0 ||
-               access("/usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh", R_OK) == 0 ||
-               access("/home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh", R_OK) == 0;
-    }
+bool is_executable_in_path(const char *executable) {
+    if (!executable || strlen(executable) == 0) return false;
 
     const char *path_env = getenv("PATH");
     if (!path_env) return false;
@@ -116,7 +93,7 @@ bool is_tool_in_path(const char *tool) {
     char full_path[PATH_MAX];
 
     while (token) {
-        snprintf(full_path, sizeof(full_path), "%s/%s", token, tool);
+        snprintf(full_path, sizeof(full_path), "%s/%s", token, executable);
         if (access(full_path, X_OK) == 0) {
             found = true;
             break;
@@ -129,14 +106,15 @@ bool is_tool_in_path(const char *tool) {
 }
 
 char *read_symlink_target(const char *path) {
+    char resolved[PATH_MAX];
+    if (realpath(path, resolved)) {
+        return strdup(resolved);
+    }
+
     char target[PATH_MAX];
     ssize_t len = readlink(path, target, sizeof(target) - 1);
     if (len != -1) {
         target[len] = '\0';
-        char resolved[PATH_MAX];
-        if (realpath(path, resolved)) {
-            return strdup(resolved);
-        }
         return strdup(target);
     }
     return NULL;

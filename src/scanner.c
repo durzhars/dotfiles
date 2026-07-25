@@ -2,14 +2,33 @@
 #define _DEFAULT_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #include "scanner.h"
+#include "registry.h"
 
-static const char *KNOWN_TOOLS[] = {
-    "starship", "fastfetch", "fzf", "eza", "bat", "fd", "rg", "kitty", "tmux",
-    "nvim", "hyprland", "uwsm", "noctalia", "mpv", "grim", "slurp", "wl-clipboard",
-    "git", "stow", "curl", "htop", "btop", "lazygit", NULL
-};
+static bool file_contains_tool_invocation(const char *filepath, const char *tool) {
+    FILE *fp = fopen(filepath, "r");
+    if (!fp) return false;
 
-static void scan_dir_recursive(const char *dir_path, StringArray *shebangs, StringArray *invocations) {
+    char line[1024];
+    bool found = false;
+    char pattern1[256], pattern2[256], pattern3[256], pattern4[256];
+    snprintf(pattern1, sizeof(pattern1), "command -v %s", tool);
+    snprintf(pattern2, sizeof(pattern2), "exec %s", tool);
+    snprintf(pattern3, sizeof(pattern3), "%s init", tool);
+    snprintf(pattern4, sizeof(pattern4), "%s -c", tool);
+
+    while (fgets(line, sizeof(line), fp)) {
+        if (strstr(line, pattern1) || strstr(line, pattern2) ||
+            strstr(line, pattern3) || strstr(line, pattern4)) {
+            found = true;
+            break;
+        }
+    }
+
+    fclose(fp);
+    return found;
+}
+
+static void scan_dir_recursive(const char *dotfiles_dir, const char *dir_path, const StringArray *candidate_tools, StringArray *shebangs, StringArray *invocations) {
     DIR *dir = opendir(dir_path);
     if (!dir) return;
 
@@ -22,7 +41,7 @@ static void scan_dir_recursive(const char *dir_path, StringArray *shebangs, Stri
         snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name);
 
         if (is_dir(path)) {
-            scan_dir_recursive(path, shebangs, invocations);
+            scan_dir_recursive(dotfiles_dir, path, candidate_tools, shebangs, invocations);
         } else if (file_exists(path) && !is_symlink(path)) {
             FILE *fp = fopen(path, "r");
             if (fp) {
@@ -43,12 +62,9 @@ static void scan_dir_recursive(const char *dir_path, StringArray *shebangs, Stri
                 }
                 fclose(fp);
 
-                for (int i = 0; KNOWN_TOOLS[i] != NULL; i++) {
-                    const char *tool = KNOWN_TOOLS[i];
-                    char grep_cmd[PATH_MAX * 2 + 128];
-                    snprintf(grep_cmd, sizeof(grep_cmd), "grep -q -E \"(command -v %s|exec %s|alias .*=%s|%s init|%s -c)\" \"%s\" 2>/dev/null",
-                             tool, tool, tool, tool, tool, path);
-                    if (system(grep_cmd) == 0) {
+                for (size_t t = 0; t < candidate_tools->count; t++) {
+                    const char *tool = candidate_tools->items[t];
+                    if (file_contains_tool_invocation(path, tool)) {
                         if (!str_array_contains(invocations, tool)) {
                             str_array_append(invocations, tool);
                         }
@@ -72,11 +88,15 @@ void scan_package(const char *dotfiles_dir, const char *pkg_name) {
 
     log_info("Recursively scanning package content in '%s' for dependencies...", pkg_name);
 
+    StringArray candidate_tools;
+    str_array_init(&candidate_tools);
+    registry_get_all_tools(dotfiles_dir, &candidate_tools);
+
     StringArray shebangs, invocations;
     str_array_init(&shebangs);
     str_array_init(&invocations);
 
-    scan_dir_recursive(pkg_dir, &shebangs, &invocations);
+    scan_dir_recursive(dotfiles_dir, pkg_dir, &candidate_tools, &shebangs, &invocations);
 
     printf("  %sScan Results for package '%s':%s\n", COLOR_BOLD, pkg_name, COLOR_RESET);
     printf("    %sDetected Shebangs (Required):%s ", COLOR_BOLD, COLOR_RESET);
@@ -105,8 +125,14 @@ void scan_package(const char *dotfiles_dir, const char *pkg_name) {
         manifest.optional = invocations;
         manifest_save(&manifest, dotfiles_dir);
         log_success("Generated '%s'", manifest_path);
+        // Note: manifest_save transferred ownership, so reset pointers before free
+        manifest.required.items = NULL;
+        manifest.optional.items = NULL;
+        manifest_free(&manifest);
     } else {
         str_array_free(&shebangs);
         str_array_free(&invocations);
     }
+
+    str_array_free(&candidate_tools);
 }

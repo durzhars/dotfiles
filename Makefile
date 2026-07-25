@@ -7,6 +7,7 @@ LDFLAGS ?=
 SRC_DIR = src
 SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/utils.c \
+       $(SRC_DIR)/registry.c \
        $(SRC_DIR)/manifest.c \
        $(SRC_DIR)/checker.c \
        $(SRC_DIR)/scanner.c \

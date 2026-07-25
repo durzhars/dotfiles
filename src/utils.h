@@ -28,7 +28,7 @@ char *trim_whitespace(char *str);
 bool file_exists(const char *path);
 bool is_dir(const char *path);
 bool is_symlink(const char *path);
-bool is_tool_in_path(const char *tool);
+bool is_executable_in_path(const char *executable);
 char *read_symlink_target(const char *path);
 void get_distro_id(char *buf, size_t buf_size);
 
