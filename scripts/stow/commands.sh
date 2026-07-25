@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # =============================================================================
-# Stow Manager Module: Artisan-Style Terminal Commands
+# Stow Manager Module: Terminal Commands
 # =============================================================================
 
 cmd_deps_add() {
@@ -24,7 +24,7 @@ cmd_deps_add() {
     local current_val
     current_val="$(read_manifest_key "$pkg" "$target_key")"
 
-    if [[ " $current_val " =~ " $dep " ]]; then
+    if [[ " $current_val " == *" $dep "* ]]; then
         warn "Dependency '${dep}' is already in ${target_key} for package '${pkg}'."
         return 0
     fi

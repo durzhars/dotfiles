@@ -5,13 +5,26 @@
 
 set -e
 
-export DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export SCRIPTS_DIR="$DOTFILES_DIR/scripts/stow"
-export TARGET_DIR="$HOME"
-export REGISTRY_FILE="$DOTFILES_DIR/stow.registry"
-export PROFILE_FILE="$DOTFILES_DIR/stow.profile"
-export TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-export AUTO_INSTALL=false
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DOTFILES_DIR
+
+SCRIPTS_DIR="$DOTFILES_DIR/scripts/stow"
+export SCRIPTS_DIR
+
+TARGET_DIR="$HOME"
+export TARGET_DIR
+
+REGISTRY_FILE="$DOTFILES_DIR/stow.registry"
+export REGISTRY_FILE
+
+PROFILE_FILE="$DOTFILES_DIR/stow.profile"
+export PROFILE_FILE
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+export TIMESTAMP
+
+AUTO_INSTALL=false
+export AUTO_INSTALL
 
 # Source modular libraries
 # shellcheck source=scripts/stow/utils.sh

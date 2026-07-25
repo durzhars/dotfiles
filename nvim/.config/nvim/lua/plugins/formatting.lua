@@ -16,7 +16,7 @@ require("conform").setup({
 		zsh = { "shfmt" },
 	},
 	formatters = {
-		shfmt = { append_args = { "-i", "2", "-ci", "-bn" } },
+		shfmt = { append_args = { "-i", "4", "-ci", "-bn" } },
 		php_cs_fixer = {
 			prepend_args = { "--rules=@PSR12", "--using-cache=no", "--no-interaction" },
 		},
