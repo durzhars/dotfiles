@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Artisan-Style Framework Stow Package Manager & Dependency Resolver
+# Zero-Hardcode Framework Stow Package Manager & Dependency Resolver
 # =============================================================================
-# - Artisan CLI Interface: Manage dependencies & packages directly from terminal:
+# - Fully Data-Driven: Zero hardcoded package names or binary arrays in script.
+# - Package Conflicts: Declared per-package in `.stowdeps` via `CONFLICTS="..."`.
+# - Package Profiles: Declared in `stow.profile` (`DEFAULT_PACKAGES="..."`).
+# - Central Registry: `stow.registry` maps binary aliases and distro overrides.
+# - Artisan CLI: Manage packages, dependencies & mappings from terminal:
 #     ./stow.sh deps:add <pkg> <dep> [--required|--optional]
 #     ./stow.sh deps:remove <pkg> <dep>
 #     ./stow.sh deps:show <pkg>
 #     ./stow.sh make:package <name>
 #     ./stow.sh registry:add <tool> <binary_aliases> [distro:package]
 #     ./stow.sh scan [pkg]
-# - Data-driven architecture: zero hardcoded package declarations in script.
-# - Reads package manifests (`.stowdeps` per package) and central registry (`stow.registry`).
-# - Resolves Stow directory-folding conflicts by converting directory symlinks
-#   into real directory structures so GNU Stow manages file-level symlinks natively.
-# - Handles mutually exclusive packages (e.g. `terminal` vs `headless`).
-# - Backs up unmanaged conflicting target files before stowing.
 # =============================================================================
 
 set -e
@@ -22,6 +20,7 @@ set -e
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME"
 REGISTRY_FILE="$DOTFILES_DIR/stow.registry"
+PROFILE_FILE="$DOTFILES_DIR/stow.profile"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 AUTO_INSTALL=false
 
@@ -34,12 +33,6 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
-
-# Package Mutually Exclusive Mapping
-MUTUAL_EXCLUSIONS=(
-    "headless:terminal"
-    "terminal:headless"
-)
 
 # -----------------------------------------------------------------------------
 # Helper & Diagnostic Output Functions
@@ -73,7 +66,7 @@ detect_distro() {
     fi
 }
 
-# Dynamic package discovery
+# Dynamic package discovery: lists all package directories containing dotfiles
 get_all_packages() {
     local pkgs=()
     for d in "$DOTFILES_DIR"/*/; do
@@ -199,6 +192,7 @@ write_manifest_key() {
 # Package Dependency Manifest for '$pkg'
 REQUIRED=""
 OPTIONAL=""
+CONFLICTS=""
 EOF
     fi
 
@@ -213,20 +207,21 @@ EOF
 # Artisan-Style CLI Commands
 # -----------------------------------------------------------------------------
 
-# Add a dependency to a package manifest
 cmd_deps_add() {
     local pkg="$1"
     local dep="$2"
     local type="${3:---optional}"
 
     if [[ -z "$pkg" || -z "$dep" ]]; then
-        error "Usage: $0 deps:add <package> <dependency_name> [--required|--optional]"
+        error "Usage: $0 deps:add <package> <dependency_name> [--required|--optional|--conflict]"
         return 1
     fi
 
     local target_key="OPTIONAL"
     if [[ "$type" == "--required" || "$type" == "-r" ]]; then
         target_key="REQUIRED"
+    elif [[ "$type" == "--conflict" || "$type" == "-c" ]]; then
+        target_key="CONFLICTS"
     fi
 
     local current_val
@@ -240,10 +235,9 @@ cmd_deps_add() {
     local new_val
     new_val="$(echo "$current_val $dep" | xargs)"
     write_manifest_key "$pkg" "$target_key" "$new_val"
-    success "Added '${dep}' as ${target_key} dependency to package '${pkg}'."
+    success "Added '${dep}' as ${target_key} entry for package '${pkg}'."
 }
 
-# Remove a dependency from a package manifest
 cmd_deps_remove() {
     local pkg="$1"
     local dep="$2"
@@ -255,20 +249,24 @@ cmd_deps_remove() {
 
     local req_val
     local opt_val
+    local cnf_val
     req_val="$(read_manifest_key "$pkg" "REQUIRED")"
     opt_val="$(read_manifest_key "$pkg" "OPTIONAL")"
+    cnf_val="$(read_manifest_key "$pkg" "CONFLICTS")"
 
     local new_req
     local new_opt
+    local new_cnf
     new_req="$(echo "$req_val" | tr ' ' '\n' | grep -v "^${dep}$" | tr '\n' ' ' | xargs 2>/dev/null || true)"
     new_opt="$(echo "$opt_val" | tr ' ' '\n' | grep -v "^${dep}$" | tr '\n' ' ' | xargs 2>/dev/null || true)"
+    new_cnf="$(echo "$cnf_val" | tr ' ' '\n' | grep -v "^${dep}$" | tr '\n' ' ' | xargs 2>/dev/null || true)"
 
     write_manifest_key "$pkg" "REQUIRED" "$new_req"
     write_manifest_key "$pkg" "OPTIONAL" "$new_opt"
+    write_manifest_key "$pkg" "CONFLICTS" "$new_cnf"
     success "Removed '${dep}' from package '${pkg}'."
 }
 
-# Display dependency manifest for a package
 cmd_deps_show() {
     local pkg="$1"
     if [[ -z "$pkg" ]]; then
@@ -287,7 +285,6 @@ cmd_deps_show() {
     echo ""
 }
 
-# Scaffold a new Stow package directory
 cmd_make_package() {
     local pkg="$1"
 
@@ -310,12 +307,12 @@ cmd_make_package() {
 # Package Dependency Manifest for '${pkg}'
 REQUIRED=""
 OPTIONAL=""
+CONFLICTS=""
 EOF
         success "Created manifest file: ${manifest}"
     fi
 }
 
-# Add a binary alias or distro package mapping to stow.registry
 cmd_registry_add() {
     local tool="$1"
     local aliases="$2"
@@ -392,6 +389,7 @@ scan_package_dependencies() {
 # Package Dependency Manifest for '${pkg}' (auto-generated by stow.sh scan)
 REQUIRED="${unique_req[*]}"
 OPTIONAL="${unique_opt[*]}"
+CONFLICTS=""
 EOF
         success "Generated '${manifest}'"
     fi
@@ -618,21 +616,21 @@ prepare_target_conflicts() {
     done < <(cd "$pkg_dir" && find . ! -type d -a ! -name '.stowdeps' 2>/dev/null | sed 's|^\./||')
 }
 
+# Handle package conflicts dynamically read from .stowdeps
 handle_mutual_exclusions() {
     local target_pkg="$1"
+    local conflicts
+    conflicts="$(read_manifest_key "$target_pkg" "CONFLICTS")"
 
-    for rule in "${MUTUAL_EXCLUSIONS[@]}"; do
-        local pkg="${rule%%:*}"
-        local conflicting_pkg="${rule#*:}"
-
-        if [[ "$target_pkg" == "$pkg" ]]; then
+    if [[ -n "$conflicts" ]]; then
+        for conflicting_pkg in $conflicts; do
             if is_package_stowed "$conflicting_pkg"; then
-                warn "Package '${pkg}' conflicts with currently stowed package '${conflicting_pkg}'."
+                warn "Package '${target_pkg}' conflicts with currently stowed package '${conflicting_pkg}'."
                 info "Auto-unstowing conflicting package '${conflicting_pkg}' first..."
                 unstow_package "$conflicting_pkg"
             fi
-        fi
-    done
+        done
+    fi
 }
 
 is_package_stowed() {
@@ -698,6 +696,33 @@ restow_package() {
     stow_package "$pkg"
 }
 
+cmd_stow_all() {
+    local packages_to_stow=""
+
+    if [[ -f "$PROFILE_FILE" ]]; then
+        while IFS='=' read -r k v || [[ -n "$k" ]]; do
+            k="$(echo "$k" | xargs 2>/dev/null || true)"
+            if [[ "$k" == "DEFAULT_PACKAGES" ]]; then
+                v="${v#\"}"
+                v="${v%\"}"
+                packages_to_stow="$v"
+                break
+            fi
+        done < "$PROFILE_FILE"
+    fi
+
+    if [[ -z "$packages_to_stow" ]]; then
+        packages_to_stow="$(get_all_packages)"
+    fi
+
+    info "Stowing default profile packages: ${packages_to_stow}"
+    for pkg in $packages_to_stow; do
+        if [[ -d "$DOTFILES_DIR/$pkg" ]]; then
+            stow_package "$pkg"
+        fi
+    done
+}
+
 list_packages() {
     echo -e "\n${CYAN}${BOLD}=== Available Dotfiles Packages ===${NC}\n"
 
@@ -722,7 +747,7 @@ show_help() {
     echo -e "Options:"
     echo -e "  ${CYAN}-y, --install${NC}                  Auto-confirm installation of missing dependencies/plugins"
     echo -e "\nDependency Management Commands (Artisan-style):"
-    echo -e "  ${CYAN}deps:add${NC} <pkg> <dep> [--opt]   Add a dependency to package manifest"
+    echo -e "  ${CYAN}deps:add${NC} <pkg> <dep> [--opt]   Add a dependency/conflict to package manifest"
     echo -e "  ${CYAN}deps:remove${NC} <pkg> <dep>        Remove a dependency from package manifest"
     echo -e "  ${CYAN}deps:show${NC} <pkg>               Display package manifest contents"
     echo -e "  ${CYAN}make:package${NC} <name>            Scaffold a new Stow package directory & manifest"
@@ -735,9 +760,7 @@ show_help() {
     echo -e "  ${CYAN}unstow${NC} <pkg>                   Unstow a package"
     echo -e "  ${CYAN}restow${NC} <pkg>                   Restow a package"
     echo -e "  ${CYAN}fix-conflicts${NC}                  Unfold directory symlinks & resolve conflicts"
-    echo -e "  ${CYAN}terminal${NC}                       Stow desktop terminal package (unstows headless)"
-    echo -e "  ${CYAN}headless${NC}                       Stow headless terminal package (unstows terminal)"
-    echo -e "  ${CYAN}all${NC}                            Stow standard desktop environment packages"
+    echo -e "  ${CYAN}all${NC}                            Stow default environment profile packages"
     echo -e "  ${CYAN}help${NC}                           Show this help menu"
 }
 
@@ -817,21 +840,14 @@ main() {
         fix-conflicts)
             unfold_directory_symlinks
             ;;
-        terminal)
-            stow_package "terminal"
-            ;;
-        headless)
-            stow_package "headless"
-            ;;
         all)
-            stow_package "terminal"
-            stow_package "nvim"
-            stow_package "hyprland"
+            cmd_stow_all
             ;;
         help|--help|-h)
             show_help
             ;;
         *)
+            # Dynamic package execution: if $cmd matches any directory name in $DOTFILES_DIR
             if [[ -d "$DOTFILES_DIR/$cmd" ]]; then
                 stow_package "$cmd"
             else
