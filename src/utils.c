@@ -6,42 +6,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-void log_info(const char *fmt, ...) {
-    va_list args;
-    printf("%s%s[INFO]%s ", COLOR_BLUE, COLOR_BOLD, COLOR_RESET);
-    va_start(args, fmt);
-    vprintf(fmt, args);
-    va_end(args);
-    printf("\n");
-}
-
-void log_success(const char *fmt, ...) {
-    va_list args;
-    printf("%s%s[SUCCESS]%s ", COLOR_GREEN, COLOR_BOLD, COLOR_RESET);
-    va_start(args, fmt);
-    vprintf(fmt, args);
-    va_end(args);
-    printf("\n");
-}
-
-void log_warn(const char *fmt, ...) {
-    va_list args;
-    printf("%s%s[WARNING]%s ", COLOR_YELLOW, COLOR_BOLD, COLOR_RESET);
-    va_start(args, fmt);
-    vprintf(fmt, args);
-    va_end(args);
-    printf("\n");
-}
-
-void log_error(const char *fmt, ...) {
-    va_list args;
-    fprintf(stderr, "%s%s[ERROR]%s ", COLOR_RED, COLOR_BOLD, COLOR_RESET);
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
-    fprintf(stderr, "\n");
-}
-
 char *trim_whitespace(char *str) {
     if (!str) return NULL;
     while (isspace((unsigned char)*str)) str++;
@@ -203,7 +167,8 @@ void get_all_packages(const char *dotfiles_dir, StringArray *packages) {
         const char *name = entry->d_name;
         if (strcmp(name, ".") != 0 && strcmp(name, "..") != 0 &&
             strcmp(name, ".git") != 0 && strcmp(name, "scratch") != 0 &&
-            strcmp(name, "scripts") != 0 && strcmp(name, "src") != 0) {
+            strcmp(name, "scripts") != 0 && strcmp(name, "src") != 0 &&
+            strcmp(name, "tests") != 0) {
             char path[PATH_MAX * 2];
             snprintf(path, sizeof(path), "%s/%s", dotfiles_dir, name);
             if (is_dir(path)) {

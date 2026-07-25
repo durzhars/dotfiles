@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <limits.h>
+#include "logger.h"
 
 #define COLOR_RED     "\033[0;31m"
 #define COLOR_GREEN   "\033[0;32m"
@@ -18,11 +19,6 @@
 #define COLOR_CYAN    "\033[0;36m"
 #define COLOR_BOLD    "\033[1m"
 #define COLOR_RESET   "\033[0m"
-
-void log_info(const char *fmt, ...);
-void log_success(const char *fmt, ...);
-void log_warn(const char *fmt, ...);
-void log_error(const char *fmt, ...);
 
 char *trim_whitespace(char *str);
 bool file_exists(const char *path);
