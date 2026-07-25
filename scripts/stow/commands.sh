@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Terminal Commands
 # =============================================================================
@@ -100,7 +99,7 @@ cmd_make_package() {
 
     local manifest="$pkg_dir/.stowdeps"
     if [[ ! -f "$manifest" ]]; then
-        cat <<EOF > "$manifest"
+        cat <<EOF >"$manifest"
 # Package Dependency Manifest for '${pkg}'
 REQUIRED=""
 OPTIONAL=""
@@ -120,11 +119,11 @@ cmd_registry_add() {
         return 1
     fi
 
-    echo "${tool} = ${aliases}" >> "$REGISTRY_FILE"
+    echo "${tool} = ${aliases}" >>"$REGISTRY_FILE"
     if [[ -n "$distro_mapping" ]]; then
         local distro="${distro_mapping%%:*}"
         local pkg_name="${distro_mapping#*:}"
-        echo "${tool}@${distro} = ${pkg_name}" >> "$REGISTRY_FILE"
+        echo "${tool}@${distro} = ${pkg_name}" >>"$REGISTRY_FILE"
     fi
     success "Added '${tool}' mapping to '${REGISTRY_FILE}'"
 }

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Utils & General Helpers
 # =============================================================================
@@ -31,7 +30,6 @@ error() {
 
 detect_distro() {
     if [[ -f /etc/os-release ]]; then
-        # shellcheck disable=SC1091
         . /etc/os-release
         echo "$ID"
     elif command -v brew >/dev/null 2>&1; then

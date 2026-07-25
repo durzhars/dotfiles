@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Core Stow Engine & Conflict Resolver
 # =============================================================================
@@ -144,7 +143,7 @@ cmd_stow_all() {
                 packages_to_stow="$v"
                 break
             fi
-        done < "$PROFILE_FILE"
+        done <"$PROFILE_FILE"
     fi
 
     if [[ -z "$packages_to_stow" ]]; then

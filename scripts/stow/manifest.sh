@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Manifest [.stowdeps] Parser & Mutator
 # =============================================================================
@@ -19,7 +18,7 @@ read_manifest_key() {
                 echo "$v"
                 return 0
             fi
-        done < "$manifest"
+        done <"$manifest"
     fi
 }
 
@@ -33,7 +32,7 @@ write_manifest_key() {
     mkdir -p "$DOTFILES_DIR/$pkg"
 
     if [[ ! -f "$manifest" ]]; then
-        cat <<EOF > "$manifest"
+        cat <<EOF >"$manifest"
 # Package Dependency Manifest for '$pkg'
 REQUIRED=""
 OPTIONAL=""
@@ -44,6 +43,6 @@ EOF
     if grep -q "^${key}=" "$manifest" 2>/dev/null; then
         sed -i "s|^${key}=.*|${key}=\"${new_val}\"|" "$manifest"
     else
-        echo "${key}=\"${new_val}\"" >> "$manifest"
+        echo "${key}=\"${new_val}\"" >>"$manifest"
     fi
 }

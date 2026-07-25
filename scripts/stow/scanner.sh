@@ -18,7 +18,7 @@ scan_package_dependencies() {
     local detected_shebangs=()
     local detected_cmds=()
 
-    # 1. Scan Shebangs
+    # 1. Scan Shebangs (e.g. #!/bin/zsh, #!/usr/bin/env bash)
     while IFS= read -r file; do
         if [[ -f "$file" ]]; then
             local first_line
@@ -33,10 +33,24 @@ scan_package_dependencies() {
         fi
     done < <(find "$pkg_dir" -type f 2>/dev/null)
 
-    # 2. Scan command invocations
-    local known_tools=("starship" "fastfetch" "fzf" "eza" "bat" "fd" "rg" "kitty" "tmux" "nvim" "hyprland" "uwsm" "noctalia" "mpv" "grim" "slurp" "wl-clipboard" "git" "stow" "curl" "htop" "btop" "lazygit")
+    # 2. Dynamically gather candidate tool list from registry and all package manifests
+    local candidate_tools=()
+    read -r -a candidate_tools <<< "$(get_all_registry_tools)"
 
-    for tool in "${known_tools[@]}"; do
+    read -r -a packages <<< "$(get_all_packages)"
+    for p in "${packages[@]}"; do
+        local req_t
+        local opt_t
+        req_t="$(read_manifest_key "$p" "REQUIRED")"
+        opt_t="$(read_manifest_key "$p" "OPTIONAL")"
+        for t in $req_t $opt_t; do
+            candidate_tools+=("$t")
+        done
+    done
+
+    read -r -a unique_candidates <<< "$(echo "${candidate_tools[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+
+    for tool in "${unique_candidates[@]}"; do
         if grep -rq -E "(command -v ${tool}|exec ${tool}|alias .*=${tool}|${tool} init|${tool} -c)" "$pkg_dir" 2>/dev/null; then
             detected_cmds+=("$tool")
         fi

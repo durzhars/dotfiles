@@ -45,7 +45,7 @@ run_cli() {
     while [[ "$1" == -* ]]; do
         case "$1" in
             -y|--install)
-                AUTO_INSTALL=true
+                export AUTO_INSTALL=true
                 shift
                 ;;
             -h|--help)

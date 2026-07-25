@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Dependency & Optional Plugin Checker
 # =============================================================================
@@ -15,13 +14,13 @@ get_install_cmd() {
     done
 
     case "$distro" in
-        arch|manjaro|endeavouros)
+        arch | manjaro | endeavouros)
             echo "sudo pacman -S --needed ${distro_pkgs[*]}"
             ;;
-        ubuntu|debian|pop|mint)
+        ubuntu | debian | pop | mint)
             echo "sudo apt update && sudo apt install -y ${distro_pkgs[*]}"
             ;;
-        fedora|rhel|centos)
+        fedora | rhel | centos)
             echo "sudo dnf install -y ${distro_pkgs[*]}"
             ;;
         alpine)
@@ -62,7 +61,7 @@ check_dependencies() {
     local missing_required=()
     local missing_optional=()
 
-    read -r -a all_packages <<< "$(get_all_packages)"
+    read -r -a all_packages <<<"$(get_all_packages)"
 
     echo -e "\n${CYAN}${BOLD}=== Checking Package Dependencies & Optional Plugins ===${NC}\n"
 
@@ -118,10 +117,10 @@ check_dependencies() {
     local unique_req=()
     local unique_opt=()
     if [[ ${#missing_required[@]} -gt 0 ]]; then
-        read -r -a unique_req <<< "$(echo "${missing_required[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+        read -r -a unique_req <<<"$(echo "${missing_required[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
     fi
     if [[ ${#missing_optional[@]} -gt 0 ]]; then
-        read -r -a unique_opt <<< "$(echo "${missing_optional[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+        read -r -a unique_opt <<<"$(echo "${missing_optional[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
     fi
 
     # Interactive / Automatic Installation Prompts
