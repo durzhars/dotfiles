@@ -1,10 +1,13 @@
 # Makefile for Dotfiles Stow Manager (ANSI C)
 
 CC ?= gcc
-CFLAGS ?= -Wall -Wextra -pedantic -std=c99 -O2
+CFLAGS ?= -Wall -Wextra -pedantic -std=c99 -O2 -Iinclude
 LDFLAGS ?=
 
 SRC_DIR = src
+INC_DIR = include
+BUILD_DIR = build
+BIN_DIR = bin
 TEST_DIR = tests
 
 SRCS = $(SRC_DIR)/main.c \
@@ -16,26 +19,19 @@ SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/scanner.c \
        $(SRC_DIR)/stow.c
 
-OBJS = $(SRCS:.c=.o)
-TARGET = stow-manager
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
+TARGET = $(BIN_DIR)/stow-manager
 
-TEST_SRCS = $(TEST_DIR)/test_runner.c \
-            $(SRC_DIR)/logger.c \
-            $(SRC_DIR)/utils.c \
-            $(SRC_DIR)/registry.c \
-            $(SRC_DIR)/manifest.c \
-            $(SRC_DIR)/checker.c \
-            $(SRC_DIR)/scanner.c \
-            $(SRC_DIR)/stow.c
-
-TEST_OBJS = $(TEST_SRCS:.c=.o)
-TEST_TARGET = test_runner
+TEST_SRCS = $(TEST_DIR)/test_runner.c
+TEST_OBJS = $(BUILD_DIR)/test_runner.o \
+            $(filter-out $(BUILD_DIR)/main.o,$(OBJS))
+TEST_TARGET = $(BIN_DIR)/test_runner
 
 .PHONY: all clean static install test
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
 static: CFLAGS += -static
@@ -44,14 +40,23 @@ static: $(TARGET)
 test: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
-$(TEST_TARGET): $(TEST_OBJS)
+$(TEST_TARGET): $(TEST_OBJS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(TEST_TARGET) $(LDFLAGS)
 
-%.o: %.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/test_runner.o: $(TEST_DIR)/test_runner.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -Itests -c $< -o $@
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
 clean:
-	rm -f $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_TARGET)
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 install: $(TARGET)
 	install -d $(DESTDIR)$(PREFIX)/bin

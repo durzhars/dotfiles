@@ -168,7 +168,8 @@ void get_all_packages(const char *dotfiles_dir, StringArray *packages) {
         if (strcmp(name, ".") != 0 && strcmp(name, "..") != 0 &&
             strcmp(name, ".git") != 0 && strcmp(name, "scratch") != 0 &&
             strcmp(name, "scripts") != 0 && strcmp(name, "src") != 0 &&
-            strcmp(name, "tests") != 0) {
+            strcmp(name, "include") != 0 && strcmp(name, "build") != 0 &&
+            strcmp(name, "bin") != 0 && strcmp(name, "tests") != 0) {
             char path[PATH_MAX * 2];
             snprintf(path, sizeof(path), "%s/%s", dotfiles_dir, name);
             if (is_dir(path)) {

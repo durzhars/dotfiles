@@ -16,8 +16,6 @@ terminal/.config/kitty/themes/noctalia.conf
 terminal/.config/kitty/kitty.conf.bak
 diffs.txt
 
-# C Build & Test Artifacts
-src/*.o
-tests/*.o
-stow-manager
-test_runner
+# C Build & Target Directories
+build/
+bin/

@@ -3,9 +3,9 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "test_framework.h"
-#include "../src/utils.h"
-#include "../src/manifest.h"
-#include "../src/registry.h"
+#include "utils.h"
+#include "manifest.h"
+#include "registry.h"
 
 static void test_trim_whitespace(void) {
     char s1[] = "  hello world  ";
