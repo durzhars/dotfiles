@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 # =============================================================================
 # Stow Manager Module: Dependency & Optional Plugin Checker
 # =============================================================================
