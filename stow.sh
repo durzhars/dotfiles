@@ -34,7 +34,6 @@ MUTUAL_EXCLUSIONS=(
 )
 
 # Required Dependencies per Package
-# format: "pkg_name|cmd1 cmd2..."
 PACKAGE_REQUIRED_DEPS=(
     "common|stow git"
     "terminal|zsh bash"
@@ -44,7 +43,6 @@ PACKAGE_REQUIRED_DEPS=(
 )
 
 # Optional Plugins & Tools per Package
-# format: "pkg_name|plugin1 plugin2..."
 PACKAGE_OPTIONAL_PLUGINS=(
     "common|curl"
     "terminal|starship fastfetch fzf eza bat fd rg kitty zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
@@ -89,21 +87,36 @@ detect_distro() {
 is_tool_installed() {
     local item="$1"
 
-    # 1. Check binary command
-    if command -v "$item" >/dev/null 2>&1; then
-        return 0
-    fi
-
-    # 2. Check Zsh system plugins
     case "$item" in
+        wl-clipboard)
+            if command -v wl-copy >/dev/null 2>&1 || command -v wl-paste >/dev/null 2>&1; then
+                return 0
+            fi
+            ;;
+        fd)
+            if command -v fd >/dev/null 2>&1 || command -v fdfind >/dev/null 2>&1; then
+                return 0
+            fi
+            ;;
         zsh-autosuggestions)
-            [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && return 0
+            if [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+                return 0
+            fi
             ;;
         zsh-syntax-highlighting)
-            [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && return 0
+            if [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+                return 0
+            fi
             ;;
         zsh-history-substring-search)
-            [[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]] && return 0
+            if [[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
+                return 0
+            fi
+            ;;
+        *)
+            if command -v "$item" >/dev/null 2>&1; then
+                return 0
+            fi
             ;;
     esac
 
@@ -121,7 +134,6 @@ get_install_cmd() {
             echo "sudo pacman -S --needed ${pkgs[*]}"
             ;;
         ubuntu|debian|pop|mint)
-            # Map tool names to debian package names if needed
             local deb_pkgs=()
             for p in "${pkgs[@]}"; do
                 case "$p" in
