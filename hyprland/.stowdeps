@@ -1,0 +1,3 @@
+# Package Dependency Manifest for 'hyprland'
+REQUIRED="hyprland"
+OPTIONAL="uwsm noctalia mpv grim slurp wl-clipboard"

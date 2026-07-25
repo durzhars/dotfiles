@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Stow Package Manager & Conflict Resolver for Dotfiles
+# Framework Stow Package Manager & Dependency Resolver
 # =============================================================================
-# - Auto-detects required dependencies AND optional plugins/tools per package.
-# - Interactively prompts user to install missing required tools & optional plugins.
+# - Data-driven architecture: zero hardcoded package declarations in script.
+# - Reads package manifests (`.stowdeps` per package) and central registry (`stow.registry`).
+# - Includes recursive auto-scanner (`./stow.sh scan`) to detect binary dependencies
+#   from script shebangs, commands, and aliases inside package files.
 # - Resolves Stow directory-folding conflicts by converting directory symlinks
 #   into real directory structures so GNU Stow manages file-level symlinks natively.
 # - Handles mutually exclusive packages (e.g. `terminal` vs `headless`).
@@ -14,6 +16,7 @@ set -e
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME"
+REGISTRY_FILE="$DOTFILES_DIR/stow.registry"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 AUTO_INSTALL=false
 
@@ -33,26 +36,8 @@ MUTUAL_EXCLUSIONS=(
     "terminal:headless"
 )
 
-# Required Dependencies per Package
-PACKAGE_REQUIRED_DEPS=(
-    "common|stow git"
-    "terminal|zsh bash"
-    "headless|zsh bash tmux"
-    "nvim|nvim git"
-    "hyprland|hyprland"
-)
-
-# Optional Plugins & Tools per Package
-PACKAGE_OPTIONAL_PLUGINS=(
-    "common|curl"
-    "terminal|starship fastfetch fzf eza bat fd rg kitty zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
-    "headless|starship fastfetch fzf eza bat fd rg htop btop zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
-    "nvim|fd rg lazygit gcc make npm python3"
-    "hyprland|uwsm noctalia mpv grim slurp wl-clipboard"
-)
-
 # -----------------------------------------------------------------------------
-# Helper Functions
+# Helper & Diagnostic Output Functions
 # -----------------------------------------------------------------------------
 
 info() {
@@ -83,91 +68,218 @@ detect_distro() {
     fi
 }
 
+# Dynamic package discovery: lists all package directories containing dotfiles
+get_all_packages() {
+    local pkgs=()
+    for d in "$DOTFILES_DIR"/*/; do
+        if [[ -d "$d" ]]; then
+            local base
+            base="$(basename "$d")"
+            if [[ "$base" != "scratch" && "$base" != ".git"* ]]; then
+                pkgs+=("$base")
+            fi
+        fi
+    done
+    echo "${pkgs[*]}"
+}
+
+# -----------------------------------------------------------------------------
+# Central Registry & Manifest Parsing Engine
+# -----------------------------------------------------------------------------
+
+# Resolves binary executables for a given tool name from stow.registry or defaults
+get_binary_aliases() {
+    local tool="$1"
+    local aliases=("$tool")
+
+    if [[ -f "$REGISTRY_FILE" ]]; then
+        while IFS='=' read -r key val || [[ -n "$key" ]]; do
+            # Trim whitespace and skip comments/empty lines
+            key="$(echo "$key" | xargs 2>/dev/null || true)"
+            val="$(echo "$val" | xargs 2>/dev/null || true)"
+
+            if [[ -n "$key" && ! "$key" =~ ^# && "$key" == "$tool" ]]; then
+                IFS='|' read -ra split_aliases <<< "$val"
+                aliases=()
+                for a in "${split_aliases[@]}"; do
+                    a="$(echo "$a" | xargs)"
+                    [[ -n "$a" ]] && aliases+=("$a")
+                done
+                break
+            fi
+        done < "$REGISTRY_FILE"
+    fi
+
+    echo "${aliases[*]}"
+}
+
+# Translates tool name to distro package name using stow.registry
+get_distro_pkg_name() {
+    local tool="$1"
+    local distro="$2"
+    local pkg_name="$tool"
+
+    if [[ -f "$REGISTRY_FILE" ]]; then
+        local match_key="${tool}@${distro}"
+        while IFS='=' read -r key val || [[ -n "$key" ]]; do
+            key="$(echo "$key" | xargs 2>/dev/null || true)"
+            val="$(echo "$val" | xargs 2>/dev/null || true)"
+
+            if [[ -n "$key" && ! "$key" =~ ^# && "$key" == "$match_key" ]]; then
+                pkg_name="$val"
+                break
+            fi
+        done < "$REGISTRY_FILE"
+    fi
+
+    echo "$pkg_name"
+}
+
 # Check if a tool or plugin is installed on the host system
 is_tool_installed() {
-    local item="$1"
+    local tool="$1"
+    read -r -a aliases <<< "$(get_binary_aliases "$tool")"
 
-    case "$item" in
-        wl-clipboard)
-            if command -v wl-copy >/dev/null 2>&1 || command -v wl-paste >/dev/null 2>&1; then
-                return 0
-            fi
-            ;;
-        fd)
-            if command -v fd >/dev/null 2>&1 || command -v fdfind >/dev/null 2>&1; then
-                return 0
-            fi
-            ;;
+    for bin in "${aliases[@]}"; do
+        if command -v "$bin" >/dev/null 2>&1; then
+            return 0
+        fi
+    done
+
+    # Check Zsh plugin file paths if tool is a zsh plugin
+    case "$tool" in
         zsh-autosuggestions)
-            if [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
-                return 0
-            fi
+            [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && return 0
             ;;
         zsh-syntax-highlighting)
-            if [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
-                return 0
-            fi
+            [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && return 0
             ;;
         zsh-history-substring-search)
-            if [[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
-                return 0
-            fi
-            ;;
-        *)
-            if command -v "$item" >/dev/null 2>&1; then
-                return 0
-            fi
+            [[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh || -r /home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]] && return 0
             ;;
     esac
 
     return 1
 }
 
-# Display package installation command recommendation
+# Reads a key from a package's `.stowdeps` manifest file
+read_manifest_key() {
+    local pkg="$1"
+    local key="$2"
+    local manifest="$DOTFILES_DIR/$pkg/.stowdeps"
+
+    if [[ -f "$manifest" ]]; then
+        while IFS='=' read -r k v || [[ -n "$k" ]]; do
+            k="$(echo "$k" | xargs 2>/dev/null || true)"
+            if [[ "$k" == "$key" ]]; then
+                v="${v#\"}"
+                v="${v%\"}"
+                echo "$v"
+                return 0
+            fi
+        done < "$manifest"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Recursive Code Scanner (Auto-detects dependencies from package contents)
+# -----------------------------------------------------------------------------
+
+scan_package_dependencies() {
+    local pkg="$1"
+    local pkg_dir="$DOTFILES_DIR/$pkg"
+
+    if [[ ! -d "$pkg_dir" ]]; then
+        error "Package directory '${pkg}' does not exist!"
+        return 1
+    fi
+
+    info "Recursively scanning package content in '${pkg}' for dependencies..."
+
+    local detected_shebangs=()
+    local detected_cmds=()
+
+    # 1. Scan Shebangs (#!/bin/zsh, #!/usr/bin/env bash, etc.)
+    while IFS= read -r file; do
+        if [[ -f "$file" ]]; then
+            local first_line
+            first_line="$(head -n 1 "$file" 2>/dev/null || true)"
+            if [[ "$first_line" =~ ^#! ]]; then
+                local bin
+                bin="$(echo "$first_line" | awk '{print $NF}' | xargs basename 2>/dev/null || true)"
+                if [[ -n "$bin" && "$bin" != "env" && "$bin" != "sh" ]]; then
+                    detected_shebangs+=("$bin")
+                fi
+            fi
+        fi
+    done < <(find "$pkg_dir" -type f 2>/dev/null)
+
+    # 2. Scan command invocations in text config/script files
+    local known_tools=("starship" "fastfetch" "fzf" "eza" "bat" "fd" "rg" "kitty" "tmux" "nvim" "hyprland" "uwsm" "noctalia" "mpv" "grim" "slurp" "wl-clipboard" "git" "stow" "curl" "htop" "btop" "lazygit")
+
+    for tool in "${known_tools[@]}"; do
+        if grep -rq -E "(command -v ${tool}|exec ${tool}|alias .*=${tool}|${tool} init|${tool} -c)" "$pkg_dir" 2>/dev/null; then
+            detected_cmds+=("$tool")
+        fi
+    done
+
+    # Combine & deduplicate
+    read -r -a unique_req <<< "$(echo "${detected_shebangs[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+    read -r -a unique_opt <<< "$(echo "${detected_cmds[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+
+    info "Scan Results for package '${pkg}':"
+    echo -e "  ${BOLD}Detected Shebangs (Required):${NC} ${unique_req[*]:-none}"
+    echo -e "  ${BOLD}Detected Invocations (Optional):${NC} ${unique_opt[*]:-none}\n"
+
+    # Write or update .stowdeps manifest if missing
+    local manifest="$pkg_dir/.stowdeps"
+    if [[ ! -f "$manifest" ]]; then
+        info "Auto-generating '.stowdeps' manifest for '${pkg}'..."
+        cat <<EOF > "$manifest"
+# Package Dependency Manifest for '${pkg}' (auto-generated by stow.sh scan)
+REQUIRED="${unique_req[*]}"
+OPTIONAL="${unique_opt[*]}"
+EOF
+        success "Generated '${manifest}'"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Dependency & Optional Plugin Checker
+# -----------------------------------------------------------------------------
+
 get_install_cmd() {
     local distro="$1"
     shift
-    local pkgs=("$@")
+    local raw_pkgs=("$@")
+    local distro_pkgs=()
+
+    for p in "${raw_pkgs[@]}"; do
+        distro_pkgs+=("$(get_distro_pkg_name "$p" "$distro")")
+    done
 
     case "$distro" in
         arch|manjaro|endeavouros)
-            echo "sudo pacman -S --needed ${pkgs[*]}"
+            echo "sudo pacman -S --needed ${distro_pkgs[*]}"
             ;;
         ubuntu|debian|pop|mint)
-            local deb_pkgs=()
-            for p in "${pkgs[@]}"; do
-                case "$p" in
-                    fd) deb_pkgs+=("fd-find") ;;
-                    rg) deb_pkgs+=("ripgrep") ;;
-                    *) deb_pkgs+=("$p") ;;
-                esac
-            done
-            echo "sudo apt update && sudo apt install -y ${deb_pkgs[*]}"
+            echo "sudo apt update && sudo apt install -y ${distro_pkgs[*]}"
             ;;
         fedora|rhel|centos)
-            local dnf_pkgs=()
-            for p in "${pkgs[@]}"; do
-                case "$p" in
-                    fd) dnf_pkgs+=("fd-find") ;;
-                    rg) dnf_pkgs+=("ripgrep") ;;
-                    *) dnf_pkgs+=("$p") ;;
-                esac
-            done
-            echo "sudo dnf install -y ${dnf_pkgs[*]}"
+            echo "sudo dnf install -y ${distro_pkgs[*]}"
             ;;
         alpine)
-            echo "sudo apk add ${pkgs[*]}"
+            echo "sudo apk add ${distro_pkgs[*]}"
             ;;
         macos)
-            echo "brew install ${pkgs[*]}"
+            echo "brew install ${distro_pkgs[*]}"
             ;;
         *)
-            echo "Install missing packages manually: ${pkgs[*]}"
+            echo "Install missing packages manually: ${distro_pkgs[*]}"
             ;;
     esac
 }
 
-# Execute installation command for missing packages
 install_packages() {
     local distro="$1"
     shift
@@ -187,10 +299,6 @@ install_packages() {
     fi
 }
 
-# -----------------------------------------------------------------------------
-# Dependency & Optional Plugin Checker
-# -----------------------------------------------------------------------------
-
 check_dependencies() {
     local target_pkg="$1"
     local distro
@@ -198,42 +306,46 @@ check_dependencies() {
     local missing_required=()
     local missing_optional=()
 
+    read -r -a all_packages <<< "$(get_all_packages)"
+
     echo -e "\n${CYAN}${BOLD}=== Checking Package Dependencies & Optional Plugins ===${NC}\n"
 
-    # Scan all relevant packages
-    for entry in "${PACKAGE_REQUIRED_DEPS[@]}"; do
-        local pkg_name="${entry%%|*}"
-        local req_tools="${entry#*|}"
-
+    for pkg_name in "${all_packages[@]}"; do
         # Skip unrelated packages if a specific package was requested
-        if [[ -n "$target_pkg" && "$target_pkg" != "all" && "$pkg_name" != "common" && "$pkg_name" != "$target_pkg" ]]; then
+        if [[ -n "$target_pkg" && "$target_pkg" != "all" && "$pkg_name" != "$target_pkg" ]]; then
             continue
         fi
 
+        # If .stowdeps missing, run scan first
+        if [[ ! -f "$DOTFILES_DIR/$pkg_name/.stowdeps" ]]; then
+            scan_package_dependencies "$pkg_name"
+        fi
+
+        local req_tools
+        local opt_tools
+        req_tools="$(read_manifest_key "$pkg_name" "REQUIRED")"
+        opt_tools="$(read_manifest_key "$pkg_name" "OPTIONAL")"
+
         echo -e "${BOLD}Package [${pkg_name}]:${NC}"
 
-        # 1. Check Required Dependencies
+        # 1. Required Dependencies
         echo -e "  ${BOLD}Required Dependencies:${NC}"
-        for tool in $req_tools; do
-            if is_tool_installed "$tool"; then
-                echo -e "    ${GREEN}✓${NC} ${tool}"
-            else
-                echo -e "    ${RED}✗${NC} ${tool} ${RED}(REQUIRED MISSING)${NC}"
-                missing_required+=("$tool")
-            fi
-        done
+        if [[ -n "$req_tools" ]]; then
+            for tool in $req_tools; do
+                if is_tool_installed "$tool"; then
+                    echo -e "    ${GREEN}✓${NC} ${tool}"
+                else
+                    echo -e "    ${RED}✗${NC} ${tool} ${RED}(REQUIRED MISSING)${NC}"
+                    missing_required+=("$tool")
+                fi
+            done
+        else
+            echo -e "    ${GREEN}✓${NC} none"
+        fi
 
-        # 2. Check Optional Plugins & Tools
-        local opt_tools=""
-        for opt_entry in "${PACKAGE_OPTIONAL_PLUGINS[@]}"; do
-            if [[ "${opt_entry%%|*}" == "$pkg_name" ]]; then
-                opt_tools="${opt_entry#*|}"
-                break
-            fi
-        done
-
+        # 2. Optional Plugins & Tools
+        echo -e "  ${BOLD}Optional Plugins & Tools:${NC}"
         if [[ -n "$opt_tools" ]]; then
-            echo -e "  ${BOLD}Optional Plugins & Tools:${NC}"
             for tool in $opt_tools; do
                 if is_tool_installed "$tool"; then
                     echo -e "    ${GREEN}✓${NC} ${tool}"
@@ -242,11 +354,13 @@ check_dependencies() {
                     missing_optional+=("$tool")
                 fi
             done
+        else
+            echo -e "    ${GREEN}✓${NC} none"
         fi
         echo ""
     done
 
-    # De-duplicate missing arrays
+    # De-duplicate arrays
     local unique_req=()
     local unique_opt=()
     if [[ ${#missing_required[@]} -gt 0 ]]; then
@@ -300,28 +414,19 @@ check_dependencies() {
 # Directory Unfolder & Conflict Resolver
 # -----------------------------------------------------------------------------
 
-# Unfolds directory symlinks in $HOME pointing into $DOTFILES_DIR
-# Converts directory symlinks into real directories so Stow can manage file symlinks.
 unfold_directory_symlinks() {
     info "Scanning for directory symlinks that cause Stow folding conflicts..."
     local unfolded_count=0
 
-    # Search for symlinks in $HOME and $HOME/.config up to depth 6 pointing into $DOTFILES_DIR
     while IFS= read -r symlink_path; do
         if [[ -L "$symlink_path" && -d "$symlink_path" ]]; then
             local target
             target="$(readlink -f "$symlink_path" 2>/dev/null || true)"
 
-            # Check if target is inside dotfiles directory
             if [[ "$target" == "$DOTFILES_DIR"* ]]; then
                 warn "Unfolding directory symlink: ${symlink_path} -> ${target}"
-
-                # Remove the directory symlink
                 rm -f "$symlink_path"
-
-                # Recreate as a real directory
                 mkdir -p "$symlink_path"
-
                 unfolded_count=$((unfolded_count + 1))
             fi
         fi
@@ -334,7 +439,6 @@ unfold_directory_symlinks() {
     fi
 }
 
-# Prepares target paths for a package: removes old symlinks and backs up real file conflicts
 prepare_target_conflicts() {
     local pkg="$1"
     local pkg_dir="$DOTFILES_DIR/$pkg"
@@ -346,29 +450,23 @@ prepare_target_conflicts() {
 
     info "Preparing target paths and resolving conflicts for package '${pkg}'..."
 
-    # Find all non-directory items (files and symlinks) inside the package
     while IFS= read -r relative_file; do
         local target_path="$TARGET_DIR/$relative_file"
         local parent_dir
         parent_dir="$(dirname "$target_path")"
 
-        # Ensure parent directory exists as a real directory
         mkdir -p "$parent_dir"
 
-        # If target path exists or is a symlink
         if [[ -L "$target_path" ]]; then
-            # Any existing symlink at target path is removed so stow can link cleanly
             info "Removing existing symlink: ${target_path}"
             rm -f "$target_path"
         elif [[ -f "$target_path" || -d "$target_path" ]]; then
-            # Real unmanaged file or directory blocking stow
             warn "Backing up unmanaged file conflict: ${target_path} -> ${target_path}.bak.${TIMESTAMP}"
             mv "$target_path" "${target_path}.bak.${TIMESTAMP}"
         fi
-    done < <(cd "$pkg_dir" && find . ! -type d 2>/dev/null | sed 's|^\./||')
+    done < <(cd "$pkg_dir" && find . ! -type d -a ! -name '.stowdeps' 2>/dev/null | sed 's|^\./||')
 }
 
-# Handle mutually exclusive packages
 handle_mutual_exclusions() {
     local target_pkg="$1"
 
@@ -386,7 +484,6 @@ handle_mutual_exclusions() {
     done
 }
 
-# Check if a package is currently stowed
 is_package_stowed() {
     local pkg="$1"
     local pkg_dir="$DOTFILES_DIR/$pkg"
@@ -395,7 +492,6 @@ is_package_stowed() {
         return 1
     fi
 
-    # Check if any file in target points into this package in dotfiles
     while IFS= read -r relative_path; do
         local target_path="$TARGET_DIR/$relative_path"
         if [[ -L "$target_path" ]]; then
@@ -405,7 +501,7 @@ is_package_stowed() {
                 return 0
             fi
         fi
-    done < <(cd "$pkg_dir" && find . ! -type d 2>/dev/null | sed 's|^\./||')
+    done < <(cd "$pkg_dir" && find . ! -type d -a ! -name '.stowdeps' 2>/dev/null | sed 's|^\./||')
 
     return 1
 }
@@ -418,20 +514,12 @@ stow_package() {
     local pkg="$1"
     info "Stowing package '${pkg}'..."
 
-    # Check dependencies & plugins first
     check_dependencies "$pkg"
-
-    # Handle mutual exclusions (e.g. terminal vs headless)
     handle_mutual_exclusions "$pkg"
-
-    # Unfold any directory symlinks in $HOME
     unfold_directory_symlinks
-
-    # Prepare target paths & backup unmanaged conflicting files
     prepare_target_conflicts "$pkg"
 
-    # Execute stow with --no-folding to prevent future folder-level conflicts
-    if stow -d "$DOTFILES_DIR" -t "$TARGET_DIR" --no-folding -v -R "$pkg"; then
+    if stow -d "$DOTFILES_DIR" -t "$TARGET_DIR" --no-folding --ignore='\.stowdeps' -v -R "$pkg"; then
         success "Successfully stowed package '${pkg}'!"
     else
         error "Failed to stow package '${pkg}'."
@@ -445,7 +533,7 @@ unstow_package() {
 
     unfold_directory_symlinks
 
-    if stow -d "$DOTFILES_DIR" -t "$TARGET_DIR" --no-folding -v -D "$pkg"; then
+    if stow -d "$DOTFILES_DIR" -t "$TARGET_DIR" --no-folding --ignore='\.stowdeps' -v -D "$pkg"; then
         success "Successfully unstowed package '${pkg}'!"
     else
         error "Failed to unstow package '${pkg}'."
@@ -462,15 +550,12 @@ restow_package() {
 list_packages() {
     echo -e "\n${CYAN}${BOLD}=== Available Dotfiles Packages ===${NC}\n"
 
-    for dir in "$DOTFILES_DIR"/*/; do
-        if [[ -d "$dir" ]]; then
-            local pkg
-            pkg="$(basename "$dir")"
-            if is_package_stowed "$pkg"; then
-                echo -e "  ${GREEN}●${NC} ${BOLD}${pkg}${NC} ${GREEN}(stowed)${NC}"
-            else
-                echo -e "  ${RED}○${NC} ${pkg} (not stowed)"
-            fi
+    read -r -a packages <<< "$(get_all_packages)"
+    for pkg in "${packages[@]}"; do
+        if is_package_stowed "$pkg"; then
+            echo -e "  ${GREEN}●${NC} ${BOLD}${pkg}${NC} ${GREEN}(stowed)${NC}"
+        else
+            echo -e "  ${RED}○${NC} ${pkg} (not stowed)"
         fi
     done
     echo ""
@@ -481,12 +566,13 @@ list_packages() {
 # -----------------------------------------------------------------------------
 
 show_help() {
-    echo -e "${BOLD}Dotfiles Stow Sync & Conflict Resolver${NC}"
+    echo -e "${BOLD}Dotfiles Framework Stow Manager & Dependency Resolver${NC}"
     echo -e "Usage: $0 [options] <command> [package]\n"
     echo -e "Options:"
     echo -e "  ${CYAN}-y, --install${NC}       Auto-confirm installation of missing dependencies/plugins"
     echo -e "\nCommands:"
     echo -e "  ${CYAN}check${NC} [pkg]         Detect missing dependencies & optional plugins"
+    echo -e "  ${CYAN}scan${NC} [pkg]          Recursively scan package content to detect & auto-generate .stowdeps"
     echo -e "  ${CYAN}list${NC}                List all packages and stowed status"
     echo -e "  ${CYAN}stow${NC} <pkg>          Stow a package with auto conflict resolution"
     echo -e "  ${CYAN}unstow${NC} <pkg>        Unstow a package"
@@ -499,7 +585,6 @@ show_help() {
 }
 
 main() {
-    # Parse options
     while [[ "$1" == -* ]]; do
         case "$1" in
             -y|--install)
@@ -522,6 +607,16 @@ main() {
     case "$cmd" in
         check)
             check_dependencies "$pkg"
+            ;;
+        scan)
+            if [[ -n "$pkg" ]]; then
+                scan_package_dependencies "$pkg"
+            else
+                read -r -a packages <<< "$(get_all_packages)"
+                for p in "${packages[@]}"; do
+                    scan_package_dependencies "$p"
+                done
+            fi
             ;;
         list)
             list_packages

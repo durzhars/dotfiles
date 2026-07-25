@@ -1,0 +1,3 @@
+# Package Dependency Manifest for 'headless'
+REQUIRED="bash zsh tmux"
+OPTIONAL="starship fastfetch fzf eza bat fd rg htop btop zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
