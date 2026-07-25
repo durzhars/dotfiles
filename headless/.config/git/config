@@ -1,0 +1,9 @@
+[init]
+	defaultBranch = main
+[core]
+	autocrlf = input
+	editor = nvim
+[pull]
+	rebase = false
+[color]
+	ui = auto

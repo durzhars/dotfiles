@@ -1,0 +1,139 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+palette = "noctalia"
+
+add_newline = false
+
+# =============================================================================
+# Core System & Host / SSH Detection
+# =============================================================================
+
+[hostname]
+ssh_only = false
+ssh_symbol = "󰒋 "
+format = '\[[$ssh_symbol$hostname]($style)\]'
+style = "bold green"
+
+[username]
+format = '\[[ $user]($style)\]'
+disabled = false
+show_always = true
+
+[directory]
+format = '\[[ $path]($style)\]'
+style = "bold blue"
+
+[cmd_duration]
+min_time = 2000
+format = '\[[󱎫 $duration]($style)\]'
+style = "bold yellow"
+
+[time]
+disabled = false
+format = '\[[ $time]($style)\]'
+time_format = "%R"
+utc_time_offset = "local"
+
+# =============================================================================
+# Git Integration
+# =============================================================================
+
+[git_branch]
+symbol = " "
+format = '\[[$symbol$branch]($style)\]'
+style = "bold purple"
+
+[git_commit]
+format = '\[[ \($hash$tag\)]($style)\]'
+
+[git_state]
+format = '\[[$state ($progress_current/$progress_total)]($style)\]'
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style))'
+
+# =============================================================================
+# Languages & Tools
+# =============================================================================
+
+[c]
+symbol = " "
+format = '\[[$symbol($version(-$name))]($style)\]'
+
+[cpp]
+symbol = " "
+format = '\[[$symbol($version(-$name))]($style)\]'
+
+[cmake]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[golang]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[java]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[nodejs]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[php]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[python]
+symbol = " "
+format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
+
+[rust]
+symbol = "󱘗 "
+format = '\[[$symbol($version)]($style)\]'
+
+[lua]
+symbol = " "
+format = '\[[$symbol($version)]($style)\]'
+
+[package]
+symbol = "󰏗 "
+format = '\[[$symbol$version]($style)\]'
+
+# =============================================================================
+# Noctalia Palette
+# =============================================================================
+
+[palettes.noctalia]
+blue      = "#8b32ab"
+red       = "#ba1a1a"
+green     = "#0059bc"
+yellow    = "#455e8e"
+cyan      = "#aec7fd"
+magenta   = "#acc7ff"
+white     = "#181c23"
+black     = "#dde2f3"
+
+rosewater = "#455e8e"
+flamingo  = "#ba1a1a"
+pink      = "#acc7ff"
+mauve     = "#acc7ff"
+maroon    = "#ba1a1a"
+peach     = "#455e8e"
+teal      = "#aec7fd"
+sky       = "#aec7fd"
+sapphire  = "#8b32ab"
+lavender  = "#acc7ff"
+
+text      = "#181c23"
+subtext1  = "#181c23"
+subtext0  = "#727785"
+
+overlay2  = "#727785"
+overlay1  = "#727785"
+overlay0  = "#dde2f3"
+surface2  = "#dde2f3"
+surface1  = "#dde2f3"
+surface0  = "#f9f9ff"
+base      = "#f9f9ff"
+mantle    = "#f9f9ff"
+crust     = "#f9f9ff"
