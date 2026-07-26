@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Wrapper script for C Dotfiles Stow Manager (bin/stow-manager)
+# Entrypoint launcher for stow-manager binary
 # =============================================================================
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BINARY="$DOTFILES_DIR/bin/stow-manager"
-
-if [[ ! -x "$BINARY" ]]; then
-    make -C "$DOTFILES_DIR" >/dev/null 2>&1 || make -C "$DOTFILES_DIR"
+if command -v stow-manager >/dev/null 2>&1; then
+    exec stow-manager "$@"
+elif [[ -x "$HOME/.local/bin/stow-manager" ]]; then
+    exec "$HOME/.local/bin/stow-manager" "$@"
+else
+    echo "[ERROR] stow-manager binary not found! Please install from ~/Projects/stow-manager" >&2
+    exit 1
 fi
-
-exec "$BINARY" "$@"
