@@ -1,7 +1,7 @@
-# Makefile for Dotfiles Stow Manager (ANSI C)
+# Makefile for Dotfiles Stow Manager (Modern C11)
 
 CC ?= gcc
-CFLAGS ?= -Wall -Wextra -pedantic -std=c99 -O2 -Iinclude
+CFLAGS ?= -Wall -Wextra -pedantic -std=c11 -O2 -Iinclude
 LDFLAGS ?=
 
 SRC_DIR = src
