@@ -24,7 +24,7 @@ void manifest_init(PackageManifest *manifest, const char *pkg_name) {
 }
 
 bool manifest_load(PackageManifest *manifest, const char *dotfiles_dir) {
-    char path[PATH_MAX * 2];
+    char path[PATH_MAX * 4];
     snprintf(path, sizeof(path), "%s/%s/.stowdeps", dotfiles_dir, manifest->package_name);
 
     FILE *fp = fopen(path, "r");
@@ -60,7 +60,7 @@ bool manifest_save(const PackageManifest *manifest, const char *dotfiles_dir) {
     snprintf(pkg_dir, sizeof(pkg_dir), "%s/%s", dotfiles_dir, manifest->package_name);
     mkdir(pkg_dir, 0755);
 
-    char path[PATH_MAX * 2];
+    char path[PATH_MAX * 4];
     snprintf(path, sizeof(path), "%s/.stowdeps", pkg_dir);
 
     FILE *fp = fopen(path, "w");
@@ -158,7 +158,7 @@ void manifest_remove_dep(const char *dotfiles_dir, const char *pkg_name, const c
 }
 
 void manifest_show(const char *dotfiles_dir, const char *pkg_name) {
-    char path[PATH_MAX * 2];
+    char path[PATH_MAX * 4];
     snprintf(path, sizeof(path), "%s/%s/.stowdeps", dotfiles_dir, pkg_name);
 
     if (!file_exists(path)) {

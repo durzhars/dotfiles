@@ -115,7 +115,7 @@ void scan_package(const char *dotfiles_dir, const char *pkg_name) {
     }
     printf("\n\n");
 
-    char manifest_path[PATH_MAX * 2];
+    char manifest_path[PATH_MAX * 4];
     snprintf(manifest_path, sizeof(manifest_path), "%s/.stowdeps", pkg_dir);
     if (!file_exists(manifest_path)) {
         log_info("Auto-generating '.stowdeps' manifest for '%s'...", pkg_name);
@@ -125,7 +125,6 @@ void scan_package(const char *dotfiles_dir, const char *pkg_name) {
         manifest.optional = invocations;
         manifest_save(&manifest, dotfiles_dir);
         log_success("Generated '%s'", manifest_path);
-        // Note: manifest_save transferred ownership, so reset pointers before free
         manifest.required.items = NULL;
         manifest.optional.items = NULL;
         manifest_free(&manifest);
