@@ -1,0 +1,9 @@
+[*.zsh]
+indent_style = space
+indent_size = 4
+shell_variant = zsh
+
+[.zshrc]
+indent_style = space
+indent_size = 4
+shell_variant = zsh
