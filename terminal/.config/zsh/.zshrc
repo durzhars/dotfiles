@@ -14,22 +14,29 @@ elif [[ -r "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
 fi
 
-# Auto byte-compile configuration files into $zcache_dir when updated
+# Auto byte-compile configuration files into $zcache_dir (0ms startup overhead)
 local zcache_dir="${ZDOTDIR:-$HOME/.config/zsh}/cache"
 [[ -d "$zcache_dir" ]] || mkdir -p "$zcache_dir"
 
-setopt LOCAL_OPTIONS EXTENDED_GLOB
-for _zfile in "$ZDOTDIR"/*.zsh(N) "$ZDOTDIR"/.zshrc(N); do
-    local _zwc_target="$zcache_dir/${_zfile:t}.zwc"
-    local _zwc_link="${_zfile}.zwc"
-    if [[ -f "$_zfile" && (! -f "$_zwc_target" || "$_zfile" -nt "$_zwc_target") ]]; then
-        zcompile "$_zwc_target" "$_zfile" 2>/dev/null
-    fi
-    if [[ -f "$_zwc_target" && (! -L "$_zwc_link" || "$_zwc_target" -nt "$_zwc_link") ]]; then
-        ln -sf "cache/${_zfile:t}.zwc" "$_zwc_link" 2>/dev/null
-    fi
-done
-unset _zfile _zwc_target _zwc_link
+local _stamp="$zcache_dir/.zwc_stamp"
+if [[ ! -f "$_stamp" || "$ZDOTDIR" -nt "$_stamp" ]]; then
+    (
+        setopt LOCAL_OPTIONS EXTENDED_GLOB
+        for _zfile in "$ZDOTDIR"/*.zsh(N) "$ZDOTDIR"/.zshrc(N); do
+            local _zwc_target="$zcache_dir/${_zfile:t}.zwc"
+            local _zwc_link="${_zfile}.zwc"
+            if [[ -f "$_zfile" && (! -f "$_zwc_target" || "$_zfile" -nt "$_zwc_target") ]]; then
+                zcompile "$_zwc_target" "$_zfile" 2>/dev/null
+            fi
+            if [[ -f "$_zwc_target" && (! -L "$_zwc_link" || "$_zwc_target" -nt "$_zwc_link") ]]; then
+                ln -sf "cache/${_zfile:t}.zwc" "$_zwc_link" 2>/dev/null
+            fi
+        done
+        touch "$_stamp" 2>/dev/null
+    ) &!
+fi
+unset _stamp
+
 
 # =============================================================================
 # Transient Prompt
