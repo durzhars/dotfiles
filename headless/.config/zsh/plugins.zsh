@@ -1,7 +1,8 @@
 # Headless Zsh Plugins & Completions (Universal Multi-Device Architecture)
 
-local zcache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+local zcache_dir="${ZDOTDIR:-$HOME/.config/zsh}/cache"
 [[ -d "$zcache_dir" ]] || mkdir -p "$zcache_dir"
+
 
 # -----------------------------------------------------------------------------
 # Fast compinit with 24-hour cache & byte compilation
