@@ -73,6 +73,22 @@ opt.listchars = {
 }
 opt.fillchars = { eob = " " }
 
+-- Dynamic indent guides via leadmultispace
+-- Adjusts the guide character spacing based on each buffer's shiftwidth
+vim.api.nvim_create_autocmd({ "BufEnter", "OptionSet" }, {
+    group = vim.api.nvim_create_augroup("headless-indent-guides", { clear = true }),
+    callback = function()
+        local sw = vim.bo.shiftwidth
+        if sw == 0 then
+            sw = vim.bo.tabstop
+        end
+        if sw > 0 then
+            local lms = "│" .. string.rep(" ", sw - 1)
+            vim.opt_local.listchars:append({ leadmultispace = lms })
+        end
+    end,
+})
+
 -- Wildmenu (command-line completion)
 opt.wildmenu = true
 opt.wildmode = "longest:full,full"
