@@ -5,6 +5,12 @@
 
 local map = vim.keymap.set
 
+
+-- ── Map the leader key ─────────────────────────────────────────────
+
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 -- ── Navigation ─────────────────────────────────────────────────────
 
 -- Center screen after vertical motions
@@ -56,8 +62,8 @@ map("n", "J", "mzJ`z", { desc = "Join line (keep cursor)" })
 
 -- ── Diagnostics ────────────────────────────────────────────────────
 
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+map("n", "[d", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Previous diagnostic" })
+map("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "Next diagnostic" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic message" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Diagnostic list" })
 
@@ -71,10 +77,7 @@ map("n", "[l", ":lprev<CR>zz", { desc = "Previous location", silent = true })
 -- ── Built-in Fuzzy Finder (Neovim 0.11+) ──────────────────────────
 -- Uses vim.ui.select + :find for lightweight fuzzy finding
 
-map("n", "<leader>ff", function()
-    -- Use :find with wildmenu for file finding
-    vim.cmd("find ")
-end, { desc = "Find file (:find)" })
+map("n", "<leader>ff", ":find ", { desc = "Find file (:find)" })
 
 map("n", "<leader>fb", function()
     -- List buffers and pick
