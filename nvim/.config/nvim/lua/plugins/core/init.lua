@@ -48,5 +48,9 @@ require("plugins.fzf")
 vim.pack.add({ "https://github.com/folke/which-key.nvim" })
 require("plugins.whichkey")
 
+vim.pack.add({
+	"https://github.com/lewis6991/gitsigns.nvim",
+})
+
 vim.pack.add({ "https://github.com/goolord/alpha-nvim" })
 require("plugins.alpha")

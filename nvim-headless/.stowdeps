@@ -1,0 +1,4 @@
+# Package Dependency Manifest for 'nvim-headless'
+REQUIRED="nvim"
+OPTIONAL="fzf"
+CONFLICTS="nvim"

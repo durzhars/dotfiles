@@ -15,3 +15,7 @@ terminal/.config/kitty/current-theme.conf
 terminal/.config/kitty/themes/noctalia.conf
 terminal/.config/kitty/kitty.conf.bak
 diffs.txt
+
+# Zsh Compiled Bytecode Files
+*.zwc
+

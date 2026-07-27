@@ -1,7 +1,7 @@
-# Headless Zsh Aliases
+# Headless Zsh Aliases (Performance & Server Optimized)
 
-# Dynamic ls / eza
-if command -v eza >/dev/null 2>&1; then
+# Dynamic ls / eza (Zero subshell command lookup)
+if (( $+commands[eza] )); then
     alias ls='eza --icons=always --color=always --group-directories-first'
     alias ll='eza -lh --icons=always --color=always --group-directories-first --git'
     alias la='eza -lha --icons=always --color=always --group-directories-first --git'
@@ -14,12 +14,12 @@ else
 fi
 
 # Dynamic cat / bat
-if command -v bat >/dev/null 2>&1; then
+if (( $+commands[bat] )); then
     alias cat='bat'
 fi
 
 # Dynamic rg
-if command -v rg >/dev/null 2>&1; then
+if (( $+commands[rg] )); then
     alias rg='rg --hidden --glob "!.git"'
 fi
 
@@ -37,3 +37,4 @@ alias ....='cd ../../..'
 alias ports='ss -tulpn'
 alias myip='curl -s https://ifconfig.me'
 alias reload='exec $SHELL -l'
+
