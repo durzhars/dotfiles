@@ -1,7 +1,14 @@
 local M = {}
 
 M.setup = function()
-	local colors = require("dcolorscheme.neovim")
+	local ok, colors = pcall(require, "dcolorscheme.neovim")
+	if not ok or type(colors) ~= "table" then
+		ok, colors = pcall(require, "dcolorscheme.fallback")
+	end
+	if not ok or type(colors) ~= "table" then
+		colors = {}
+	end
+
 	return {
 		-- ==========================================
 		-- CORE UI

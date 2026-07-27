@@ -26,9 +26,13 @@ end
 
 M.watch = function()
 	local path = vim.fn.expand("~/Projects/colors.nvim/lua/dcolorscheme/neovim.lua")
+	if vim.fn.filereadable(path) == 0 then
+		return
+	end
 	local watcher = vim.uv.new_fs_event()
 
 	if watcher then
+
 		watcher:start(
 			path,
 			{},

@@ -1,21 +1,37 @@
 # =============================================================================
-# Dynamic Color Outputs & Artifacts
+# Dynamically Generated Theme Files & Runtime Artifacts
 # =============================================================================
 
-# Hyprland / Noctalia dynamically generated colors
+# Hyprland / Noctalia dynamically generated colors & themes
 hyprland/.config/hypr/noctalia/noctalia-colors.lua
 hyprland/.config/noctalia/colors.json
+hyprland/.config/noctalia/zen-browser/zen-userChrome.css
+hyprland/.config/noctalia/zen-browser/zen-userContent.css
 
 # Neovim dynamically generated colorscheme files
 nvim/.config/nvim/lua/colors/neovim.lua
 misc/Projects/colors.nvim/lua/dcolorscheme/neovim.lua
 
-# Kitty active theme symlinks/generated files and backups
+# Kitty active theme symlinks, generated files, and backups
 terminal/.config/kitty/current-theme.conf
 terminal/.config/kitty/themes/noctalia.conf
 terminal/.config/kitty/kitty.conf.bak
-diffs.txt
 
-# Zsh Compiled Bytecode Files
+# Lazygit dynamically generated theme configs
+terminal/.config/lazygit/config.yml
+
+# =============================================================================
+# Zsh Compiled Bytecode & Caches
+# =============================================================================
 *.zwc
+.zcompdump*
+zcompdump*
+
+# =============================================================================
+# Temporary & OS Artifacts
+# =============================================================================
+diffs.txt
+.DS_Store
+Thumbs.db
+
 

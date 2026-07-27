@@ -3,7 +3,10 @@ require("modules.generals")
 require("modules.keybinds")
 require("modules.windowrules")
 require("modules.animations")
-require("noctalia.noctalia-colors")
+if not pcall(require, "noctalia.noctalia-colors") then
+    pcall(require, "noctalia.fallback-colors")
+end
+
 
 --- local active_animation = "silk"
 --- require("modules.animations." .. active_animation)
