@@ -1,4 +1,19 @@
-# Headless Zsh Environment Configuration (Performance Tuned)
+# Headless Zsh Environment Configuration (Dynamic Multi-Device Architecture)
+
+# Dynamic PATH Resolution (User & System Bin Directories)
+local -a user_paths=(
+    "$HOME/.local/bin"
+    "$HOME/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/go/bin"
+    "$HOME/.nix-profile/bin"
+    "/usr/local/bin"
+    "/opt/homebrew/bin"
+    "/snap/bin"
+)
+for p in "${user_paths[@]}"; do
+    [[ -d "$p" ]] && path=("$p" $path)
+done
 
 # Deduplicate PATH & fpath arrays in Zsh
 typeset -U path PATH fpath FPATH
@@ -33,17 +48,15 @@ setopt NUMERIC_GLOB_SORT
 setopt NO_CHECK_JOBS
 setopt NO_HUP
 
-# Safe Default Apps (Internal $commands hash lookup, zero subshells)
-if (( $+commands[nvim] )); then
-    export EDITOR="nvim"
-    export SUDO_EDITOR="nvim"
-elif (( $+commands[vim] )); then
-    export EDITOR="vim"
-    export SUDO_EDITOR="vim"
-else
-    export EDITOR="vi"
-    export SUDO_EDITOR="vi"
-fi
+# Dynamic Default Editor Priority Chain
+local -a preferred_editors=(nvim vim hx micro nano vi)
+for ed in "${preferred_editors[@]}"; do
+    if (( $+commands[$ed] )); then
+        export EDITOR="$ed"
+        export SUDO_EDITOR="$ed"
+        break
+    fi
+done
 
 # Fallback TERM for headless SSH / TTY sessions
 if [[ -z "$TERM" || "$TERM" == "dumb" ]]; then
@@ -53,22 +66,40 @@ fi
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 
 # =============================================================================
-# Modern CLI Integrations (fzf + fd + bat + eza)
+# Dynamic CLI Integrations (fzf + fd/fdfind + bat/batcat + eza/exa)
 # =============================================================================
 
+# Debian/Ubuntu Command Normalization & FZF Commands
+local fd_bin=""
 if (( $+commands[fd] )); then
-    export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --exclude .git'
-    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-    export FZF_ALT_C_COMMAND='fd --type d --strip-cwd-prefix --hidden --exclude .git'
+    fd_bin="fd"
+elif (( $+commands[fdfind] )); then
+    fd_bin="fdfind"
 fi
 
+if [[ -n "$fd_bin" ]]; then
+    export FZF_DEFAULT_COMMAND="$fd_bin --type f --strip-cwd-prefix --hidden --exclude .git"
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    export FZF_ALT_C_COMMAND="$fd_bin --type d --strip-cwd-prefix --hidden --exclude .git"
+fi
+
+local bat_bin=""
 if (( $+commands[bat] )); then
-    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
-    export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+    bat_bin="bat"
+elif (( $+commands[batcat] )); then
+    bat_bin="batcat"
+fi
+
+if [[ -n "$bat_bin" ]]; then
+    export FZF_CTRL_T_OPTS="--preview '$bat_bin --color=always --style=numbers --line-range=:500 {}'"
+    export MANPAGER="sh -c 'col -bx | $bat_bin -l man -p'"
     export MANROFFOPT="-c"
 fi
 
-if (( $+commands[eza] )); then
-    export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+if (( $+commands[eza] )) || (( $+commands[exa] )); then
+    local eza_bin="eza"
+    (( $+commands[exa] )) && eza_bin="exa"
+    export FZF_ALT_C_OPTS="--preview '$eza_bin --tree --color=always {} | head -200'"
 fi
+
 

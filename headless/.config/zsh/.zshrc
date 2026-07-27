@@ -1,9 +1,16 @@
-# Headless Zsh Main Entrypoint (Performance Tuned)
+# Headless Zsh Main Entrypoint (Dynamic Multi-Device Architecture)
 
 source "$ZDOTDIR/env.zsh"
 source "$ZDOTDIR/plugins.zsh"
 source "$ZDOTDIR/aliases.zsh"
 source "$ZDOTDIR/bindings.zsh"
+
+# Device-Specific Custom Overrides (Loaded if present on target machine)
+if [[ -r "$ZDOTDIR/local.zsh" ]]; then
+    source "$ZDOTDIR/local.zsh"
+elif [[ -r "$HOME/.zshrc.local" ]]; then
+    source "$HOME/.zshrc.local"
+fi
 
 # Auto byte-compile configuration files when updated
 setopt LOCAL_OPTIONS EXTENDED_GLOB
@@ -36,4 +43,5 @@ fi
 if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (( $+commands[fastfetch] )); then
     fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
 fi
+
 
