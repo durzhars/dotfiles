@@ -27,6 +27,8 @@ terminal/.config/lazygit/config.yml
 .zcompdump*
 zcompdump*
 headless/.config/zsh/cache/
+terminal/.config/zsh/cache/
+
 
 
 # =============================================================================
