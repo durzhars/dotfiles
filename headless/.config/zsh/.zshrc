@@ -22,7 +22,7 @@ done
 unset _zfile
 
 # Lightweight Transient Prompt for Starship
-if (( $+commands[starship] )); then
+if (($+commands[starship])); then
     function set_transient_prompt() {
         local SAVED_PROMPT="$PROMPT"
         local SAVED_RPROMPT="$RPROMPT"
@@ -40,8 +40,6 @@ if (( $+commands[starship] )); then
 fi
 
 # Fastfetch (Interactive top-level shell guard only; bypassable with NO_FASTFETCH=1)
-if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (( $+commands[fastfetch] )); then
+if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (($+commands[fastfetch])); then
     fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
 fi
-
-

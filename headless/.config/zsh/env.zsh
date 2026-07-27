@@ -1,9 +1,12 @@
 # Headless Zsh Environment Configuration (Dynamic Multi-Device Architecture)
 
-# Dynamic PATH Resolution (User & System Bin Directories)
+# Dynamic PATH Resolution (User, System & Termux Bin Directories)
+local termux_prefix="${PREFIX:-/data/data/com.termux/files/usr}"
 local -a user_paths=(
     "$HOME/.local/bin"
     "$HOME/bin"
+    "$termux_prefix/bin"
+    "$termux_prefix/local/bin"
     "$HOME/.cargo/bin"
     "$HOME/go/bin"
     "$HOME/.nix-profile/bin"
@@ -14,6 +17,7 @@ local -a user_paths=(
 for p in "${user_paths[@]}"; do
     [[ -d "$p" ]] && path=("$p" $path)
 done
+
 
 # Deduplicate PATH & fpath arrays in Zsh
 typeset -U path PATH fpath FPATH
@@ -51,7 +55,7 @@ setopt NO_HUP
 # Dynamic Default Editor Priority Chain
 local -a preferred_editors=(nvim vim hx micro nano vi)
 for ed in "${preferred_editors[@]}"; do
-    if (( $+commands[$ed] )); then
+    if (($+commands[$ed])); then
         export EDITOR="$ed"
         export SUDO_EDITOR="$ed"
         break
@@ -71,9 +75,9 @@ export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 
 # Debian/Ubuntu Command Normalization & FZF Commands
 local fd_bin=""
-if (( $+commands[fd] )); then
+if (($+commands[fd])); then
     fd_bin="fd"
-elif (( $+commands[fdfind] )); then
+elif (($+commands[fdfind])); then
     fd_bin="fdfind"
 fi
 
@@ -84,9 +88,9 @@ if [[ -n "$fd_bin" ]]; then
 fi
 
 local bat_bin=""
-if (( $+commands[bat] )); then
+if (($+commands[bat])); then
     bat_bin="bat"
-elif (( $+commands[batcat] )); then
+elif (($+commands[batcat])); then
     bat_bin="batcat"
 fi
 
@@ -96,10 +100,8 @@ if [[ -n "$bat_bin" ]]; then
     export MANROFFOPT="-c"
 fi
 
-if (( $+commands[eza] )) || (( $+commands[exa] )); then
+if (($+commands[eza])) || (($+commands[exa])); then
     local eza_bin="eza"
-    (( $+commands[exa] )) && eza_bin="exa"
+    (($+commands[exa])) && eza_bin="exa"
     export FZF_ALT_C_OPTS="--preview '$eza_bin --tree --color=always {} | head -200'"
 fi
-
-
