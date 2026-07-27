@@ -5,12 +5,6 @@
 
 local map = vim.keymap.set
 
-
--- ── Map the leader key ─────────────────────────────────────────────
-
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
 -- ── Navigation ─────────────────────────────────────────────────────
 
 -- Center screen after vertical motions
@@ -62,9 +56,13 @@ map("n", "J", "mzJ`z", { desc = "Join line (keep cursor)" })
 
 -- ── Diagnostics ────────────────────────────────────────────────────
 
-map("n", "[d", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Previous diagnostic" })
-map("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "Next diagnostic" })
-map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic message" })
+map("n", "[d", function()
+	vim.diagnostic.jump({ count = -1 })
+end, { desc = "Previous diagnostic" })
+map("n", "]d", function()
+	vim.diagnostic.jump({ count = 1 })
+end, { desc = "Next diagnostic" })
+map("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Show diagnostic message" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Diagnostic list" })
 
 -- ── Quickfix / Location List ───────────────────────────────────────
@@ -80,74 +78,78 @@ map("n", "[l", ":lprev<CR>zz", { desc = "Previous location", silent = true })
 map("n", "<leader>ff", ":find ", { desc = "Find file (:find)" })
 
 map("n", "<leader>fb", function()
-    -- List buffers and pick
-    local bufs = {}
-    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted then
-            local name = vim.api.nvim_buf_get_name(buf)
-            if name ~= "" then
-                name = vim.fn.fnamemodify(name, ":~:.")
-            else
-                name = "[No Name]"
-            end
-            table.insert(bufs, { buf = buf, name = string.format("%d: %s", buf, name) })
-        end
-    end
-    vim.ui.select(bufs, {
-        prompt = "Switch Buffer:",
-        format_item = function(item) return item.name end,
-    }, function(choice)
-        if choice then
-            vim.api.nvim_set_current_buf(choice.buf)
-        end
-    end)
+	-- List buffers and pick
+	local bufs = {}
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted then
+			local name = vim.api.nvim_buf_get_name(buf)
+			if name ~= "" then
+				name = vim.fn.fnamemodify(name, ":~:.")
+			else
+				name = "[No Name]"
+			end
+			table.insert(bufs, { buf = buf, name = string.format("%d: %s", buf, name) })
+		end
+	end
+	vim.ui.select(bufs, {
+		prompt = "Switch Buffer:",
+		format_item = function(item)
+			return item.name
+		end,
+	}, function(choice)
+		if choice then
+			vim.api.nvim_set_current_buf(choice.buf)
+		end
+	end)
 end, { desc = "Find buffer" })
 
 map("n", "<leader>fg", function()
-    -- Grep with built-in :grep
-    local pattern = vim.fn.input("Grep: ")
-    if pattern ~= "" then
-        vim.cmd("silent grep! " .. vim.fn.shellescape(pattern))
-        vim.cmd("copen")
-    end
+	-- Grep with built-in :grep
+	local pattern = vim.fn.input("Grep: ")
+	if pattern ~= "" then
+		vim.cmd("silent grep! " .. vim.fn.shellescape(pattern))
+		vim.cmd("copen")
+	end
 end, { desc = "Live grep (:grep)" })
 
 map("n", "<leader>fh", ":help ", { desc = "Help tags" })
 
 map("n", "<leader>fr", function()
-    -- Recent files via oldfiles
-    local oldfiles = vim.v.oldfiles
-    local items = {}
-    for i, f in ipairs(oldfiles) do
-        if i > 50 then break end
-        if vim.fn.filereadable(f) == 1 then
-            table.insert(items, f)
-        end
-    end
-    vim.ui.select(items, {
-        prompt = "Recent Files:",
-        format_item = function(item)
-            return vim.fn.fnamemodify(item, ":~:.")
-        end,
-    }, function(choice)
-        if choice then
-            vim.cmd("edit " .. vim.fn.fnameescape(choice))
-        end
-    end)
+	-- Recent files via oldfiles
+	local oldfiles = vim.v.oldfiles
+	local items = {}
+	for i, f in ipairs(oldfiles) do
+		if i > 50 then
+			break
+		end
+		if vim.fn.filereadable(f) == 1 then
+			table.insert(items, f)
+		end
+	end
+	vim.ui.select(items, {
+		prompt = "Recent Files:",
+		format_item = function(item)
+			return vim.fn.fnamemodify(item, ":~:.")
+		end,
+	}, function(choice)
+		if choice then
+			vim.cmd("edit " .. vim.fn.fnameescape(choice))
+		end
+	end)
 end, { desc = "Recent files" })
 
 map("n", "<leader>fw", function()
-    -- Grep word under cursor
-    local word = vim.fn.expand("<cword>")
-    if word ~= "" then
-        vim.cmd("silent grep! " .. vim.fn.shellescape(word))
-        vim.cmd("copen")
-    end
+	-- Grep word under cursor
+	local word = vim.fn.expand("<cword>")
+	if word ~= "" then
+		vim.cmd("silent grep! " .. vim.fn.shellescape(word))
+		vim.cmd("copen")
+	end
 end, { desc = "Grep word under cursor" })
 
 -- ── File Explorer ──────────────────────────────────────────────────
 
-map("n", "<leader>E", ":Lexplore 30<CR>", { desc = "Toggle file explorer", silent = true })
+map("n", "<leader>e", ":Lexplore 30<CR>", { desc = "Toggle file explorer", silent = true })
 
 -- ── Misc Utilities ─────────────────────────────────────────────────
 
