@@ -3,6 +3,7 @@
 require("conform").setup({
 	formatters_by_ft = {
 		php = { "php_cs_fixer" },
+		c = { "clang_format" },
 		blade = { "blade-formatter" },
 		python = { "ruff" },
 		lua = { "stylua" },
@@ -16,6 +17,9 @@ require("conform").setup({
 		zsh = { "shfmt" },
 	},
 	formatters = {
+		clang_format = {
+			prepend_args = { "-style={BasedOnStyle: Google, IndentWidth: 4, UseTab: Never, IndentCaseLabels: true}" },
+		},
 		shfmt = { append_args = { "-i", "4", "-ci", "-bn" } },
 		php_cs_fixer = {
 			prepend_args = { "--rules=@PSR12", "--using-cache=no", "--no-interaction" },

@@ -1,11 +1,14 @@
-# Source modular components
-source "$ZDOTDIR/env.zsh"
-source "$ZDOTDIR/plugins.zsh"
-source "$ZDOTDIR/aliases.zsh"
-source "$ZDOTDIR/bindings.zsh"
+# =============================================================================
+# Source Modular Zsh Components
+# =============================================================================
+[[ -f "$ZDOTDIR/env.zsh" ]] && source "$ZDOTDIR/env.zsh"
+[[ -f "$ZDOTDIR/plugins.zsh" ]] && source "$ZDOTDIR/plugins.zsh"
+[[ -f "$ZDOTDIR/fzf.zsh" ]] && source "$ZDOTDIR/fzf.zsh"
+[[ -f "$ZDOTDIR/aliases.zsh" ]] && source "$ZDOTDIR/aliases.zsh"
+[[ -f "$ZDOTDIR/bindings.zsh" ]] && source "$ZDOTDIR/bindings.zsh"
 
 # =============================================================================
-# Transient Prompt (Powered natively by Starship Profiles)
+# Transient Prompt
 # =============================================================================
 function set_transient_prompt() {
   local SAVED_PROMPT="$PROMPT"
@@ -21,4 +24,10 @@ function set_transient_prompt() {
 }
 autoload -Uz add-zle-hook-widget
 add-zle-hook-widget zle-line-finish set_transient_prompt
-fastfetch -c "$HOME/.config/fastfetch/config.jsonc"
+
+# =============================================================================
+# Fastfetch Terminal Welcome Banner
+# =============================================================================
+if [[ $- == *i* ]] && command -v fastfetch &>/dev/null; then
+  fastfetch -c "$HOME/.config/fastfetch/config.jsonc"
+fi
