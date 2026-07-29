@@ -31,11 +31,9 @@ if [[ ! -f "$_stamp" || "$ZDOTDIR" -nt "$_stamp" ]]; then
             fi
         done
         touch "$_stamp" 2>/dev/null
-    ) &!
+    ) &|
 fi
 unset _stamp
-
-
 
 # Lightweight Transient Prompt for Starship
 if (($+commands[starship])); then

@@ -18,7 +18,6 @@ for p in "${user_paths[@]}"; do
     [[ -d "$p" ]] && path=("$p" $path)
 done
 
-
 # Deduplicate PATH & fpath arrays in Zsh
 typeset -U path PATH fpath FPATH
 
