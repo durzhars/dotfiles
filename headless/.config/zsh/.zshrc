@@ -55,5 +55,5 @@ fi
 
 # Fastfetch (Interactive top-level shell guard only; bypassable with NO_FASTFETCH=1)
 if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (($+commands[fastfetch])); then
-    fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
+    clear && fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
 fi

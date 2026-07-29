@@ -33,15 +33,14 @@ if [[ ! -f "$_stamp" || "$ZDOTDIR" -nt "$_stamp" ]]; then
             fi
         done
         touch "$_stamp" 2>/dev/null
-    ) &!
+    ) &|
 fi
 unset _stamp
-
 
 # =============================================================================
 # Transient Prompt
 # =============================================================================
-if (( $+commands[starship] )); then
+if (($+commands[starship])); then
     function set_transient_prompt() {
         local SAVED_PROMPT="$PROMPT"
         local SAVED_RPROMPT="$RPROMPT"
@@ -61,7 +60,6 @@ fi
 # =============================================================================
 # Fastfetch Terminal Welcome Banner (Interactive top-level shell guard)
 # =============================================================================
-if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (( $+commands[fastfetch] )); then
-    fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
+if [[ -t 1 && "$SHLVL" -eq 1 && -z "$NO_FASTFETCH" ]] && (($+commands[fastfetch])); then
+    clear && fastfetch -c "$HOME/.config/fastfetch/config.jsonc" 2>/dev/null
 fi
-
