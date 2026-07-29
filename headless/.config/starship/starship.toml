@@ -60,10 +60,6 @@ format = '([\[$all_status$ahead_behind\]]($style))'
 symbol = " "
 format = '\[[$symbol($version(-$name))]($style)\]'
 
-[cpp]
-symbol = " "
-format = '\[[$symbol($version(-$name))]($style)\]'
-
 [cmake]
 symbol = " "
 format = '\[[$symbol($version)]($style)\]'
