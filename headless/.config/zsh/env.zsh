@@ -1,4 +1,4 @@
-# Headless Zsh Environment Configuration (Dynamic Multi-Device Architecture)
+# Headless Zsh Environment Configuration
 
 # Dynamic PATH Resolution (User, System & Termux Bin Directories)
 local termux_prefix="${PREFIX:-/data/data/com.termux/files/usr}"

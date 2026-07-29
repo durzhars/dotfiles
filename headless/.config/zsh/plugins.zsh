@@ -1,4 +1,4 @@
-# Headless Zsh Plugins & Completions (Universal Multi-Device Architecture)
+# Headless Zsh Plugins & Completions
 
 local zcache_dir="${ZDOTDIR:-$HOME/.config/zsh}/cache"
 [[ -d "$zcache_dir" ]] || mkdir -p "$zcache_dir"

@@ -1,4 +1,4 @@
-# Headless Zsh Aliases (Dynamic Multi-Device Architecture)
+# Headless Zsh Aliases
 
 # Dynamic ls / eza / exa
 if (($+commands[eza])); then

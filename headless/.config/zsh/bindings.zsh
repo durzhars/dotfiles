@@ -1,4 +1,4 @@
-# Headless Zsh Keybindings (Dynamic Terminal Capability Resolution)
+# Headless Zsh Keybindings
 
 bindkey -e # Default Emacs keymap
 

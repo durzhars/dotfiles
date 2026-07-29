@@ -1,4 +1,4 @@
-# Headless Zsh Main Entrypoint (Dynamic Multi-Device Architecture)
+# Headless Zsh Main Entrypoint
 
 source "$ZDOTDIR/env.zsh"
 source "$ZDOTDIR/plugins.zsh"
