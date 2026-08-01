@@ -1,6 +1,11 @@
 hl.config({
     general = {
-        layout = "dwindle",
+        layout = "scrolling",
+    },
+    scrolling = {
+        fullscreen_on_one_column = true,
+        column_width = 0.9,
+        direction = "right",
     },
     dwindle = {
         force_split = 0,
@@ -17,10 +22,5 @@ hl.config({
     },
     master = {
         new_status = "slave",
-    },
-    scrolling = {
-        fullscreen_on_one_column = true,
-        column_width = 0.9,
-        direction = "right",
     },
 })

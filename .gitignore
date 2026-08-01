@@ -2,12 +2,6 @@
 # Dynamically Generated Theme Files & Runtime Artifacts
 # =============================================================================
 
-# Hyprland / Noctalia dynamically generated colors & themes
-hyprland/.config/hypr/noctalia/noctalia-colors.lua
-hyprland/.config/noctalia/colors.json
-hyprland/.config/noctalia/zen-browser/zen-userChrome.css
-hyprland/.config/noctalia/zen-browser/zen-userContent.css
-
 # Neovim dynamically generated colorscheme files
 nvim/.config/nvim/lua/colors/neovim.lua
 misc/Projects/colors.nvim/lua/dcolorscheme/neovim.lua
@@ -29,7 +23,11 @@ zcompdump*
 headless/.config/zsh/cache/
 terminal/.config/zsh/cache/
 
-
+# Hyprland / Noctalia dynamically generated colors & themes
+hyprland/.config/hypr/noctalia/noctalia-colors.lua
+hyprland/.config/noctalia/colors.json
+hyprland/.config/noctalia/zen-browser/zen-userChrome.css
+hyprland/.config/noctalia/zen-browser/zen-userContent.css
 
 # =============================================================================
 # Temporary & OS Artifacts
@@ -37,5 +35,3 @@ terminal/.config/zsh/cache/
 diffs.txt
 .DS_Store
 Thumbs.db
-
-

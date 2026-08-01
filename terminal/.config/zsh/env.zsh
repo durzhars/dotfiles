@@ -40,24 +40,24 @@ setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 
 # Core Options
-setopt PROMPT_SUBST            # Enable expansion in prompt
-setopt INTERACTIVE_COMMENTS    # Allow comments in interactive shell
-setopt AUTOCD                  # cd into directory by typing name
-setopt AUTO_PUSHD              # Save directory history on cd
-setopt PUSHD_IGNORE_DUPS       # Don't push duplicate directories onto stack
-setopt PUSHD_SILENT            # Keep pushd/popd quiet
-setopt EXTENDED_GLOB           # Advanced pattern matching (#, ~, ^)
-setopt COMPLETE_IN_WORD        # Allow completing from inside a word
-setopt ALWAYS_TO_END           # Move cursor to end of word after completion
-setopt NO_BEEP                 # Disable terminal bell
-setopt NUMERIC_GLOB_SORT       # Sort filenames numerically when globbing
-setopt NO_CHECK_JOBS           # Fast exit without waiting on jobs
+setopt PROMPT_SUBST         # Enable expansion in prompt
+setopt INTERACTIVE_COMMENTS # Allow comments in interactive shell
+setopt AUTOCD               # cd into directory by typing name
+setopt AUTO_PUSHD           # Save directory history on cd
+setopt PUSHD_IGNORE_DUPS    # Don't push duplicate directories onto stack
+setopt PUSHD_SILENT         # Keep pushd/popd quiet
+setopt EXTENDED_GLOB        # Advanced pattern matching (#, ~, ^)
+setopt COMPLETE_IN_WORD     # Allow completing from inside a word
+setopt ALWAYS_TO_END        # Move cursor to end of word after completion
+setopt NO_BEEP              # Disable terminal bell
+setopt NUMERIC_GLOB_SORT    # Sort filenames numerically when globbing
+setopt NO_CHECK_JOBS        # Fast exit without waiting on jobs
 setopt NO_HUP
 
 # Dynamic Default Editor Priority Chain
 local -a preferred_editors=(nvim vim hx micro nano vi)
 for ed in "${preferred_editors[@]}"; do
-    if (( $+commands[$ed] )); then
+    if (($+commands[$ed])); then
         export EDITOR="$ed"
         export SUDO_EDITOR="$ed"
         break
@@ -71,17 +71,14 @@ export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 # Modern CLI Integrations (fzf + fd/fdfind + bat/batcat + eza/exa + rg)
 # =============================================================================
 
-if (( $+commands[fzf] )); then
+if (($+commands[fzf])); then
     # Styled FZF Theme & Layout (Catppuccin Macchiato/Mocha aligned)
-    export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border=rounded --inline-info \
-        --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
-        --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
-        --color=marker:#b4befe,prompt:#cba6f7,query:#f38ba8"
+    export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border=rounded --inline-info"
 
     local fd_bin=""
-    if (( $+commands[fd] )); then
+    if (($+commands[fd])); then
         fd_bin="fd"
-    elif (( $+commands[fdfind] )); then
+    elif (($+commands[fdfind])); then
         fd_bin="fdfind"
     fi
 
@@ -92,9 +89,9 @@ if (( $+commands[fzf] )); then
     fi
 
     local bat_bin=""
-    if (( $+commands[bat] )); then
+    if (($+commands[bat])); then
         bat_bin="bat"
-    elif (( $+commands[batcat] )); then
+    elif (($+commands[batcat])); then
         bat_bin="batcat"
     fi
 
@@ -104,10 +101,9 @@ if (( $+commands[fzf] )); then
         export MANROFFOPT="-c"
     fi
 
-    if (( $+commands[eza] )) || (( $+commands[exa] )); then
+    if (($+commands[eza])) || (($+commands[exa])); then
         local eza_bin="eza"
-        (( $+commands[exa] )) && eza_bin="exa"
+        (($+commands[exa])) && eza_bin="exa"
         export FZF_ALT_C_OPTS="--preview '$eza_bin --tree --color=always {} | head -200'"
     fi
 fi
-

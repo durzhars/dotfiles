@@ -5,7 +5,6 @@ hl.config({
         border_size = 2,
         resize_on_border = true,
         allow_tearing = true,
-        layout = "scrolling",
         snap = {
             enabled = true,
             window_gap = 6,

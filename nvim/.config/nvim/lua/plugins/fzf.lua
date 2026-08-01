@@ -2,16 +2,13 @@
 local fzf = require("fzf-lua")
 
 fzf.setup({
-	"default-title",
-	winopts = {
-		border = "rounded",
-		preview = {
-			border = "border",
-			layout = "flex", -- Automatically adjusts based on screen width
-		},
+	fzf_colors = true,
+	defaults = {
+		git_icons = true, -- Show git status icons in file pickers
+		file_icons = true, -- Show devicons
 	},
-	-- Use your system ripgrep for lightning-fast content searching
 	grep = {
+		prompt = "Grep❯ ",
 		rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 -e",
 	},
 })
