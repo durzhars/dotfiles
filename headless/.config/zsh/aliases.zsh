@@ -76,8 +76,24 @@ plugins-fetch() {
         [fzf-tab]="https://github.com/Aloxaf/fzf-tab.git"
     )
 
-    echo "Checking and fetching Zsh plugins into $plugin_dir..."
-    for name repo in "${(@kv)repos}"; do
+    local -a requested=("$@")
+    ((${#requested} == 0)) && requested=("${(@k)repos}")
+
+    local -a targets=()
+    for arg in "${requested[@]}"; do
+        if [[ -n "${repos[$arg]}" ]]; then
+            targets+=("$arg")
+        else
+            echo "Unknown plugin '$arg' (Skipping). Available: ${(j:, :)${(k)repos}}" >&2
+        fi
+    done
+
+    targets=("${(u)targets[@]}")
+    ((${#targets} == 0)) && return 1
+
+    echo "Checking and fetching Zsh plugin(s) into $plugin_dir..."
+    for name in "${targets[@]}"; do
+        local repo="${repos[$name]}"
         if [[ ! -d "$plugin_dir/$name" ]]; then
             echo "Cloning $name..."
             git clone --depth 1 "$repo" "$plugin_dir/$name"
@@ -135,22 +151,24 @@ font-fetch() {
         [cascadia]="patched-fonts/CascadiaCode/CaskaydiaCoveNerdFont-Regular.ttf|CaskaydiaCoveNerdFont-Regular.ttf"
     )
 
-    local target_font="${1:-all}"
-    local base_url="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master"
-
-    if [[ "$target_font" != "all" && -z "${fonts[$target_font]}" ]]; then
-        echo "Unknown font '$target_font'."
-        echo "Usage: font-fetch [font_name]"
-        echo "Available options: all, ${(j:, :)${(k)fonts}}"
-        return 1
-    fi
+    local -a requested=("$@")
+    ((${#requested} == 0)) && requested=("all")
 
     local -a font_keys=()
-    if [[ "$target_font" == "all" ]]; then
-        font_keys=("${(@k)fonts}")
-    else
-        font_keys=("$target_font")
-    fi
+    for arg in "${requested[@]}"; do
+        if [[ "$arg" == "all" ]]; then
+            font_keys+=("${(@k)fonts}")
+        elif [[ -n "${fonts[$arg]}" ]]; then
+            font_keys+=("$arg")
+        else
+            echo "Unknown font '$arg' (Skipping). Available: all, ${(j:, :)${(k)fonts}}" >&2
+        fi
+    done
+
+    font_keys=("${(u)font_keys[@]}")
+    ((${#font_keys} == 0)) && return 1
+
+    local base_url="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master"
 
     echo "Downloading font(s) to $font_dir..."
     for key in "${font_keys[@]}"; do
@@ -181,10 +199,10 @@ font-fetch() {
 # Remove downloaded Nerd Font TTF file(s) from ~/.local/share/fonts
 font-remove() {
     local font_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
-    local target_font="${1}"
+    local -a requested=("$@")
 
-    if [[ -z "$target_font" ]]; then
-        echo "Usage: font-remove <font_name|all>"
+    if ((${#requested} == 0)); then
+        echo "Usage: font-remove <font_name1> [font_name2...] | all"
         echo "Available options: all, symbols, jetbrains, jetbrains-mono, firacode, firacode-mono, hack, cascadia"
         return 1
     fi
@@ -199,20 +217,21 @@ font-remove() {
         [cascadia]="CaskaydiaCoveNerdFont-Regular.ttf"
     )
 
-    if [[ "$target_font" != "all" && -z "${font_files[$target_font]}" ]]; then
-        echo "Unknown font '$target_font'."
-        echo "Available options: all, ${(j:, :)${(k)font_files}}"
-        return 1
-    fi
+    local -a font_keys=()
+    for arg in "${requested[@]}"; do
+        if [[ "$arg" == "all" ]]; then
+            font_keys+=("${(@k)font_files}")
+        elif [[ -n "${font_files[$arg]}" ]]; then
+            font_keys+=("$arg")
+        else
+            echo "Unknown font '$arg' (Skipping). Available: all, ${(j:, :)${(k)font_files}}" >&2
+        fi
+    done
 
-    local -a keys=()
-    if [[ "$target_font" == "all" ]]; then
-        keys=("${(@k)font_files}")
-    else
-        keys=("$target_font")
-    fi
+    font_keys=("${(u)font_keys[@]}")
+    ((${#font_keys} == 0)) && return 1
 
-    for key in "${keys[@]}"; do
+    for key in "${font_keys[@]}"; do
         local file="${font_files[$key]}"
         if [[ -f "$font_dir/$file" ]]; then
             rm -f "$font_dir/$file"
@@ -252,6 +271,7 @@ if (($+functions[compdef])); then
     }
     compdef _plugins_fetch_completion plugins-fetch
 fi
+
 
 
 
