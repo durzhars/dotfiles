@@ -120,4 +120,36 @@ plugins-update() {
 
 alias plugins-pull='plugins-update'
 
+# Fetch Symbols Nerd Font TTF file into ~/.local/share/fonts
+font-fetch() {
+    local font_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+    mkdir -p "$font_dir"
+    local target_file="$font_dir/SymbolsNerdFont-Regular.ttf"
+    local url="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
+
+    if [[ -f "$target_file" ]]; then
+        echo "Symbols Nerd Font is already downloaded at: $target_file"
+        return 0
+    fi
+
+    echo "Downloading SymbolsNerdFont-Regular.ttf to $font_dir..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -fLo "$target_file" --create-dirs "$url"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -O "$target_file" "$url"
+    else
+        echo "Error: Neither curl nor wget is installed." >&2
+        return 1
+    fi
+
+    if [[ -f "$target_file" ]]; then
+        echo "Successfully downloaded font to: $target_file"
+        echo "You can copy/move this font file where needed (e.g. cp '$target_file' ~/.termux/font.ttf)."
+    else
+        echo "Failed to download font." >&2
+        return 1
+    fi
+}
+
+
 
