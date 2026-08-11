@@ -49,6 +49,12 @@ hl.window_rule({
     move = { "20", "monitor_h-120" }, -- Expressions go in an array of strings
 })
 
+hl.window_rule({
+    name = "inhibit-idle-fullscreen",
+    match = { class = ".*" },
+    idle_inhibit = "fullscreen",
+})
+
 -- ==========================================
 -- WORKSPACE DELEGATION
 -- ==========================================

@@ -71,7 +71,7 @@ binder.create_bind({
 })
 
 -- WINDOW MANAGEMENT
-local closeWindowBind = hl.bind(mainMod .. " + Q", win.close())
+local closeWindowBind = hl.bind(mainMod .. "+ Q", win.close())
 closeWindowBind:set_enabled(true)
 
 hl.bind(mainMod .. "+ mouse:272", win.drag())
@@ -149,6 +149,7 @@ binder.create_bind({
 binder.create_bind({
     keys = {
         mainMod .. "+ SPACE",
+        mainMod .. "+ SHIFT + SPACE",
         mainMod .. "+ P",
         mainMod .. "+ J",
         mainMod .. "+ Y",
@@ -157,6 +158,7 @@ binder.create_bind({
     },
     exec = {
         win.float({ action = "toggle" }),
+        win.pin(),
         win.pseudo(),
         dsp.layout("togglesplit"),
         dsp.layout("scrolling"),
