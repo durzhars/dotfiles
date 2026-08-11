@@ -120,36 +120,64 @@ plugins-update() {
 
 alias plugins-pull='plugins-update'
 
-# Fetch Symbols Nerd Font TTF file into ~/.local/share/fonts
+# Fetch Popular Nerd Font TTF files into ~/.local/share/fonts
 font-fetch() {
     local font_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
     mkdir -p "$font_dir"
-    local target_file="$font_dir/SymbolsNerdFont-Regular.ttf"
-    local url="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
 
-    if [[ -f "$target_file" ]]; then
-        echo "Symbols Nerd Font is already downloaded at: $target_file"
-        return 0
-    fi
+    local -A fonts=(
+        [symbols]="patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf|SymbolsNerdFont-Regular.ttf"
+        [jetbrains]="patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFont-Regular.ttf|JetBrainsMonoNerdFont-Regular.ttf"
+        [jetbrains-mono]="patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf|JetBrainsMonoNerdFontMono-Regular.ttf"
+        [firacode]="patched-fonts/FiraCode/FiraCodeNerdFont-Regular.ttf|FiraCodeNerdFont-Regular.ttf"
+        [firacode-mono]="patched-fonts/FiraCode/FiraCodeNerdFontMono-Regular.ttf|FiraCodeNerdFontMono-Regular.ttf"
+        [hack]="patched-fonts/Hack/HackNerdFont-Regular.ttf|HackNerdFont-Regular.ttf"
+        [cascadia]="patched-fonts/CascadiaCode/CaskaydiaCoveNerdFont-Regular.ttf|CaskaydiaCoveNerdFont-Regular.ttf"
+    )
 
-    echo "Downloading SymbolsNerdFont-Regular.ttf to $font_dir..."
-    if command -v curl >/dev/null 2>&1; then
-        curl -fLo "$target_file" --create-dirs "$url"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -O "$target_file" "$url"
-    else
-        echo "Error: Neither curl nor wget is installed." >&2
+    local target_font="${1:-all}"
+    local base_url="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master"
+
+    if [[ "$target_font" != "all" && -z "${fonts[$target_font]}" ]]; then
+        echo "Unknown font '$target_font'."
+        echo "Usage: font-fetch [font_name]"
+        echo "Available options: all, ${(j:, :)${(k)fonts}}"
         return 1
     fi
 
-    if [[ -f "$target_file" ]]; then
-        echo "Successfully downloaded font to: $target_file"
-        echo "You can copy/move this font file where needed (e.g. cp '$target_file' ~/.termux/font.ttf)."
+    local -a font_keys=()
+    if [[ "$target_font" == "all" ]]; then
+        font_keys=("${(@k)fonts}")
     else
-        echo "Failed to download font." >&2
-        return 1
+        font_keys=("$target_font")
     fi
+
+    echo "Downloading font(s) to $font_dir..."
+    for key in "${font_keys[@]}"; do
+        local val="${fonts[$key]}"
+        local rel_path="${val%%|*}"
+        local filename="${val##*|}"
+        local target_file="$font_dir/$filename"
+        local url="$base_url/$rel_path"
+
+        if [[ -f "$target_file" ]]; then
+            echo "✓ $filename is already downloaded."
+            continue
+        fi
+
+        echo "Downloading $filename..."
+        if command -v curl >/dev/null 2>&1; then
+            curl -fLo "$target_file" --create-dirs "$url"
+        elif command -v wget >/dev/null 2>&1; then
+            wget -O "$target_file" "$url"
+        fi
+    done
+
+    echo ""
+    echo "Done! Font file(s) saved to: $font_dir"
+    echo "You can copy/move font files where needed (e.g., cp '$font_dir/SymbolsNerdFont-Regular.ttf' ~/.termux/font.ttf)."
 }
+
 
 
 
