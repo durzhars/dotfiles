@@ -1,3 +1,0 @@
-# Package Dependency Manifest for 'nvim'
-REQUIRED="nvim git"
-OPTIONAL="fd rg lazygit gcc make npm python3"
