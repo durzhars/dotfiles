@@ -178,11 +178,56 @@ font-fetch() {
     echo "You can copy/move font files where needed (e.g., cp '$font_dir/SymbolsNerdFont-Regular.ttf' ~/.termux/font.ttf)."
 }
 
+# Remove downloaded Nerd Font TTF file(s) from ~/.local/share/fonts
+font-remove() {
+    local font_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+    local target_font="${1}"
+
+    if [[ -z "$target_font" ]]; then
+        echo "Usage: font-remove <font_name|all>"
+        echo "Available options: all, symbols, jetbrains, jetbrains-mono, firacode, firacode-mono, hack, cascadia"
+        return 1
+    fi
+
+    local -A font_files=(
+        [symbols]="SymbolsNerdFont-Regular.ttf"
+        [jetbrains]="JetBrainsMonoNerdFont-Regular.ttf"
+        [jetbrains-mono]="JetBrainsMonoNerdFontMono-Regular.ttf"
+        [firacode]="FiraCodeNerdFont-Regular.ttf"
+        [firacode-mono]="FiraCodeNerdFontMono-Regular.ttf"
+        [hack]="HackNerdFont-Regular.ttf"
+        [cascadia]="CaskaydiaCoveNerdFont-Regular.ttf"
+    )
+
+    if [[ "$target_font" != "all" && -z "${font_files[$target_font]}" ]]; then
+        echo "Unknown font '$target_font'."
+        echo "Available options: all, ${(j:, :)${(k)font_files}}"
+        return 1
+    fi
+
+    local -a keys=()
+    if [[ "$target_font" == "all" ]]; then
+        keys=("${(@k)font_files}")
+    else
+        keys=("$target_font")
+    fi
+
+    for key in "${keys[@]}"; do
+        local file="${font_files[$key]}"
+        if [[ -f "$font_dir/$file" ]]; then
+            rm -f "$font_dir/$file"
+            echo "Removed $file from $font_dir."
+        else
+            echo "Font $file was not found in $font_dir."
+        fi
+    done
+}
+
 # Zsh Shell Completions for Helper Functions
 if (($+functions[compdef])); then
     _font_fetch_completion() {
         local -a fonts=(
-            'all:Download all available Nerd Fonts'
+            'all:All available Nerd Fonts'
             'symbols:Symbols Nerd Font (Icon glyphs only)'
             'jetbrains:JetBrains Mono Nerd Font'
             'jetbrains-mono:JetBrains Mono Nerd Font Mono (Fixed-width icons)'
@@ -193,7 +238,7 @@ if (($+functions[compdef])); then
         )
         _describe -t fonts 'Nerd Font' fonts
     }
-    compdef _font_fetch_completion font-fetch
+    compdef _font_fetch_completion font-fetch font-remove
 
     _plugins_fetch_completion() {
         local -a plugins=(
@@ -207,6 +252,7 @@ if (($+functions[compdef])); then
     }
     compdef _plugins_fetch_completion plugins-fetch
 fi
+
 
 
 
