@@ -62,3 +62,62 @@ alias myip='curl -s https://ifconfig.me || curl -s https://api.ipify.org'
 alias reload='exec $SHELL -l'
 alias meminfo='free -m -l -t 2>/dev/null || top -l 1 | head -n 10'
 alias diskinfo='df -hT 2>/dev/null || df -h'
+
+# Fetch missing Zsh plugins for environments without package manager plugin repos (e.g., Termux)
+plugins-fetch() {
+    local plugin_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/plugins"
+    mkdir -p "$plugin_dir"
+
+    local -A repos=(
+        [zsh-autosuggestions]="https://github.com/zsh-users/zsh-autosuggestions.git"
+        [zsh-syntax-highlighting]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        [zsh-history-substring-search]="https://github.com/zsh-users/zsh-history-substring-search.git"
+        [zsh-completions]="https://github.com/zsh-users/zsh-completions.git"
+        [fzf-tab]="https://github.com/Aloxaf/fzf-tab.git"
+    )
+
+    echo "Checking and fetching Zsh plugins into $plugin_dir..."
+    for name repo in "${(@kv)repos}"; do
+        if [[ ! -d "$plugin_dir/$name" ]]; then
+            echo "Cloning $name..."
+            git clone --depth 1 "$repo" "$plugin_dir/$name"
+        else
+            echo "Plugin '$name' is already installed."
+        fi
+    done
+
+    local cache_file="${ZDOTDIR:-$HOME/.config/zsh}/cache/plugins_found.zsh"
+    [[ -f "$cache_file" ]] && rm -f "$cache_file"
+    echo "Done! Run 'reload' or restart Zsh to load plugins."
+}
+
+# Update all git-cloned Zsh plugins in ~/.config/zsh/plugins
+plugins-update() {
+    local plugin_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/plugins"
+    if [[ ! -d "$plugin_dir" ]]; then
+        echo "No custom plugin directory found at $plugin_dir."
+        return 1
+    fi
+
+    echo "Updating Zsh plugins in $plugin_dir..."
+    local updated=0
+    for git_dir in "$plugin_dir"/*/.git(N/); do
+        local p_name="${git_dir:h:t}"
+        echo "Updating $p_name..."
+        if git -C "${git_dir:h}" pull --ff-only; then
+            updated=1
+        fi
+    done
+
+    if ((updated)); then
+        local cache_file="${ZDOTDIR:-$HOME/.config/zsh}/cache/plugins_found.zsh"
+        [[ -f "$cache_file" ]] && rm -f "$cache_file"
+        echo "Plugins updated! Run 'reload' or restart Zsh to refresh."
+    else
+        echo "No git-cloned plugins found to update."
+    fi
+}
+
+alias plugins-pull='plugins-update'
+
+
