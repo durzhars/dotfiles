@@ -178,6 +178,37 @@ font-fetch() {
     echo "You can copy/move font files where needed (e.g., cp '$font_dir/SymbolsNerdFont-Regular.ttf' ~/.termux/font.ttf)."
 }
 
+# Zsh Shell Completions for Helper Functions
+if (($+functions[compdef])); then
+    _font_fetch_completion() {
+        local -a fonts=(
+            'all:Download all available Nerd Fonts'
+            'symbols:Symbols Nerd Font (Icon glyphs only)'
+            'jetbrains:JetBrains Mono Nerd Font'
+            'jetbrains-mono:JetBrains Mono Nerd Font Mono (Fixed-width icons)'
+            'firacode:Fira Code Nerd Font'
+            'firacode-mono:Fira Code Nerd Font Mono (Fixed-width icons)'
+            'hack:Hack Nerd Font'
+            'cascadia:Caskaydia Cove / Cascadia Code Nerd Font'
+        )
+        _describe -t fonts 'Nerd Font' fonts
+    }
+    compdef _font_fetch_completion font-fetch
+
+    _plugins_fetch_completion() {
+        local -a plugins=(
+            'zsh-autosuggestions:Fish-like fast autosuggestions'
+            'zsh-syntax-highlighting:Fish-like syntax highlighting'
+            'zsh-history-substring-search:Up/down arrow substring search'
+            'zsh-completions:Additional zsh completion definitions'
+            'fzf-tab:Fzf tab completion menu'
+        )
+        _describe -t plugins 'Zsh Plugin' plugins
+    }
+    compdef _plugins_fetch_completion plugins-fetch
+fi
+
+
 
 
 
