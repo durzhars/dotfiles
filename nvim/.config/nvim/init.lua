@@ -2,7 +2,6 @@
 -- Core Settings
 require("core.keymaps")
 require("core.options")
-require("core.terminal")
 
 -- require("core.autocmds")
 

@@ -51,6 +51,7 @@ require("plugins.whichkey")
 vim.pack.add({
 	"https://github.com/lewis6991/gitsigns.nvim",
 })
+require("plugins.gitsigns")
 
 vim.pack.add({ "https://github.com/goolord/alpha-nvim" })
 require("plugins.alpha")

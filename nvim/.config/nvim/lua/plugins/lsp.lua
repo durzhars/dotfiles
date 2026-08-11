@@ -67,33 +67,6 @@ vim.lsp.config("intelephense", {
 					"**/vendor/fakerphp/faker/src/Faker/Provider/nl_BE/Text.php",
 				},
 			},
-			stubs = {
-				"apache",
-				"bcmath",
-				"bz2",
-				"calendar",
-				"Core",
-				"curl",
-				"date",
-				"dom",
-				"filter",
-				"gd",
-				"hash",
-				"iconv",
-				"json",
-				"libxml",
-				"mbstring",
-				"mysqli",
-				"mysqlnd",
-				"openssl",
-				"pcre",
-				"PDO",
-				"pdo_mysql",
-				"session",
-				"standard",
-				"xml",
-				"zip",
-			},
 		},
 	},
 })
@@ -141,65 +114,3 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		map("<leader>cq", vim.diagnostic.setloclist, "Diagnostics Quickfix List")
 	end,
 })
-
--- Temporary testing pipelin
-local ns = vim.api.nvim_create_namespace("architecture_test")
-
-local function run_arch_test()
-	vim.notify("Running Architecture Test...", vim.log.levels.INFO, { title = "ArchTest" })
-
-	vim.system({ "php", "artisan", "test", "--filter=NoMagicStringsArchitectureTest" }, { text = true }, function(obj)
-		vim.schedule(function()
-			-- Bersihkan diagnostics lama
-			vim.diagnostic.reset(ns)
-
-			if not obj.stdout then
-				return
-			end
-
-			local diagnostics_by_file = {}
-
-			for line in obj.stdout:gmatch("[^\r\n]+") do
-				local file_path, line_num, msg = line:match("^([^:]+):(%d+):%s*(.+)$")
-
-				if file_path and line_num and msg then
-					local abs_path = vim.fn.fnamemodify(file_path, ":p")
-
-					if not diagnostics_by_file[abs_path] then
-						diagnostics_by_file[abs_path] = {}
-					end
-
-					table.insert(diagnostics_by_file[abs_path], {
-						lnum = tonumber(line_num) - 1,
-						col = 0,
-						severity = vim.diagnostic.severity.WARN,
-						message = msg,
-						source = "ArchTest",
-					})
-				end
-			end
-
-			local count = 0
-			-- Set diagnostics ke setiap buffer/file terkait
-			for file, diags in pairs(diagnostics_by_file) do
-				local bufnr = vim.fn.bufadd(file)
-				vim.diagnostic.set(ns, bufnr, diags)
-				count = count + #diags
-			end
-
-			if count > 0 then
-				vim.notify(
-					"Found " .. count .. " architecture violations!",
-					vim.log.levels.WARN,
-					{ title = "ArchTest" }
-				)
-			else
-				vim.notify("Architecture Test Passed! Clean code.", vim.log.levels.INFO, { title = "ArchTest" })
-			end
-		end)
-	end)
-end
-
--- Command dan Keymap
-vim.api.nvim_create_user_command("ArchTest", run_arch_test, {})
-vim.keymap.set("n", "<leader>ca", run_arch_test, { desc = "Run Architecture Test Diagnostics" })
