@@ -53,3 +53,21 @@ symbols-nerd-font@macos = font-symbols-only-nerd-font
 
 
 
+replace=replace
+notify-send=notify-send
+socat=socat
+wl-copy=wl-copy
+feh=feh
+dolphin=dolphin
+zen-browser=zen-browser
+dconf=dconf
+qt6ct=qt6ct
+fzf=fzf
+git=git
+btop=btop
+htop=htop
+curl=curl
+ssh=ssh
+wget=wget
+fzf-tmux=fzf-tmux
+perl=perl

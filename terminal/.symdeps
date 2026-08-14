@@ -1,5 +1,4 @@
 # Package Dependency Manifest for 'terminal'
 REQUIRED="bash zsh"
-OPTIONAL="starship fastfetch fzf eza bat fd rg kitty symbols-nerd-font zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
+OPTIONAL="starship fastfetch fzf eza bat fd rg kitty symbols-nerd-font zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search git btop htop curl ssh wget fzf-tmux perl"
 CONFLICTS="headless"
-

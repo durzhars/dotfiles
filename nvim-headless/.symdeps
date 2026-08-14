@@ -1,5 +1,4 @@
 # Package Dependency Manifest for 'nvim-headless'
 REQUIRED="nvim"
-OPTIONAL="fzf symbols-nerd-font"
+OPTIONAL="fzf symbols-nerd-font rg git"
 CONFLICTS="nvim"
-
