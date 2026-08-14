@@ -28,7 +28,7 @@ cmp.setup({
 			},
 		},
 		ghost_text = {
-			enabled = true, -- Disables the inline grey preview text
+			enabled = true,
 		},
 	},
 	sources = {
