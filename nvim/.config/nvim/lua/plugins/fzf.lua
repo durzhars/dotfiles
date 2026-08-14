@@ -9,7 +9,7 @@ fzf.setup({
 	},
 	grep = {
 		prompt = "Grep❯ ",
-		rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 -e",
+		rg_opts = "--column --hidden --line-number --no-heading --color=always --smart-case --glob '!.git/*' --max-columns=4096 -e",
 	},
 })
 
