@@ -12,7 +12,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
         vim.opt_local.number = false
         vim.opt_local.relativenumber = false
         vim.opt_local.signcolumn = "no"
-        vim.opt_local.statuscolumn = ""
+        pcall(function() vim.opt_local.statuscolumn = "" end)
         vim.cmd("startinsert")
     end,
 })

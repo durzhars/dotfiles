@@ -49,7 +49,8 @@ opt.updatetime = 250
 opt.timeoutlen = 300
 
 -- Ensure undodir exists
-local undodir = vim.fn.stdpath("state") .. "/undo"
+local state_dir = pcall(vim.fn.stdpath, "state") and vim.fn.stdpath("state") or vim.fn.stdpath("data")
+local undodir = state_dir .. "/undo"
 if vim.fn.isdirectory(undodir) == 0 then
     vim.fn.mkdir(undodir, "p")
 end
@@ -84,7 +85,9 @@ vim.api.nvim_create_autocmd({ "BufEnter", "OptionSet" }, {
         end
         if sw > 0 then
             local lms = "│" .. string.rep(" ", sw - 1)
-            vim.opt_local.listchars:append({ leadmultispace = lms })
+            pcall(function()
+                vim.opt_local.listchars:append({ leadmultispace = lms })
+            end)
         end
     end,
 })

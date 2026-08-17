@@ -67,6 +67,9 @@ if [[ -z "$TERM" || "$TERM" == "dumb" ]]; then
 fi
 
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+if ! (($+commands[starship])); then
+    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%# '
+fi
 
 # =============================================================================
 # Dynamic CLI Integrations (fzf + fd/fdfind + bat/batcat + eza/exa)

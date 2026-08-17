@@ -1,4 +1,4 @@
 # Package Dependency Manifest for 'hyprland'
 REQUIRED="hyprland bash"
-OPTIONAL="uwsm noctalia mpv grim slurp wl-clipboard symbols-nerd-font notify-send socat wl-copy feh dolphin zen-browser btop dconf qt6ct"
-CONFLICTS=""
+OPTIONAL="uwsm noctalia mpv grim slurp wl-clipboard notify-send socat wl-copy feh dolphin zen-browser btop dconf qt6ct"
+CONFLICTS="i3 sway headless"

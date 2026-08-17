@@ -6,7 +6,7 @@ bindkey -e # Default Emacs keymap
 local -a up_keys=("${terminfo[kcuu1]}" "^[[A" "^OA" "^[OA")
 local -a down_keys=("${terminfo[kcud1]}" "^[[B" "^OB" "^[OB")
 
-if (($+widgets[history - substring - search - up])); then
+if (( $+widgets[history-substring-search-up] )); then
     for k in "${up_keys[@]}"; do
         [[ -n "$k" ]] && bindkey "$k" history-substring-search-up 2>/dev/null
     done
@@ -29,7 +29,9 @@ else
 fi
 
 # Universal Navigation & Editing Keys
-bindkey '^[[H' beginning-of-line  # Home
-bindkey '^[[F' end-of-line        # End
+bindkey '^[[H' beginning-of-line  # Home (xterm)
+bindkey '^[[F' end-of-line        # End (xterm)
+bindkey '^[OH' beginning-of-line  # Home (SS3 / legacy / PuTTY)
+bindkey '^[OF' end-of-line        # End (SS3 / legacy / PuTTY)
 bindkey '^[[3~' delete-char       # Delete
 bindkey '^?' backward-delete-char # Backspace

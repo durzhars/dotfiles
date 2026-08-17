@@ -129,9 +129,24 @@ alias reload='exec $SHELL -l'
 # =============================================================================
 
 if command -v fzf >/dev/null 2>&1; then
-    eval "$(fzf --bash 2>/dev/null)"
+    if fzf --bash >/dev/null 2>&1; then
+        eval "$(fzf --bash 2>/dev/null)"
+    elif [[ -r /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
+        source /usr/share/doc/fzf/examples/key-bindings.bash
+    elif [[ -r ~/.fzf.bash ]]; then
+        source ~/.fzf.bash
+    fi
 fi
 
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init bash 2>/dev/null)"
+else
+    export PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
+fi
+
+# Device-Specific Custom Overrides (Loaded if present on target machine)
+if [[ -r "$HOME/.bashrc.local" ]]; then
+    source "$HOME/.bashrc.local"
+elif [[ -r "$XDG_CONFIG_HOME/bash/local.bash" ]]; then
+    source "$XDG_CONFIG_HOME/bash/local.bash"
 fi

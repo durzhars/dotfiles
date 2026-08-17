@@ -46,7 +46,8 @@ local mode_map = {
 --- Get git branch name (cached, refreshed on BufEnter/FocusGained)
 local git_branch_cache = ""
 local function update_git_branch()
-    local handle = io.popen("git -C " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " branch --show-current 2>/dev/null")
+    local dir = vim.fn.shellescape(vim.fn.expand("%:p:h"))
+    local handle = io.popen("git -C " .. dir .. " branch --show-current 2>/dev/null || git -C " .. dir .. " symbolic-ref --short HEAD 2>/dev/null")
     if handle then
         local branch = handle:read("*l")
         handle:close()

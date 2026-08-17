@@ -10,7 +10,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     group = augroup,
     desc = "Briefly highlight yanked text",
     callback = function()
-        vim.hl.on_yank({ higroup = "IncSearch", timeout = 200 })
+        (vim.hl or vim.highlight).on_yank({ higroup = "IncSearch", timeout = 200 })
     end,
 })
 
@@ -114,7 +114,8 @@ vim.api.nvim_create_autocmd("BufReadPre", {
     group = augroup,
     desc = "Optimize for large files",
     callback = function(args)
-        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
+        local uv = vim.uv or vim.loop
+        local ok, stats = pcall(uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
         if ok and stats and stats.size > 1024 * 1024 then -- 1MB
             vim.opt_local.swapfile = false
             vim.opt_local.undolevels = -1

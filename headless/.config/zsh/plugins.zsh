@@ -170,9 +170,16 @@ fi
 if (($+commands[fzf])); then
     local fzf_cache="$zcache_dir/fzf_init.zsh"
     if [[ ! -s "$fzf_cache" || "$commands[fzf]" -nt "$fzf_cache" ]]; then
-        fzf --zsh >|"$fzf_cache" 2>/dev/null
+        if fzf --zsh >/dev/null 2>&1; then
+            fzf --zsh >|"$fzf_cache" 2>/dev/null
+        elif [[ -r /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
+            cat /usr/share/doc/fzf/examples/key-bindings.zsh >|"$fzf_cache"
+            [[ -r /usr/share/doc/fzf/examples/completion.zsh ]] && cat /usr/share/doc/fzf/examples/completion.zsh >>"$fzf_cache"
+        elif [[ -r ~/.fzf.zsh ]]; then
+            cat ~/.fzf.zsh >|"$fzf_cache"
+        fi
     fi
-    source "$fzf_cache"
+    [[ -s "$fzf_cache" ]] && source "$fzf_cache"
 fi
 
 if (($+commands[starship])); then

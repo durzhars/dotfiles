@@ -16,7 +16,7 @@ fi
 local zcache_dir="${ZDOTDIR:-$HOME/.config/zsh}/cache"
 [[ -d "$zcache_dir" ]] || mkdir -p "$zcache_dir"
 
-local _stamp="$zcache_dir/.zwc_stamp"
+local _stamp="$zcache_dir/.zwc_stamp_${ZSH_VERSION}"
 if [[ ! -f "$_stamp" || "$ZDOTDIR" -nt "$_stamp" ]]; then
     (
         setopt LOCAL_OPTIONS EXTENDED_GLOB

@@ -7,6 +7,8 @@
 wl-clipboard = wl-copy | wl-paste
 fd = fd | fdfind
 rg = rg | ripgrep
+bat = bat | batcat
+eza = eza | exa
 zsh-autosuggestions = plugin:/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh | plugin:/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh | plugin:/data/data/com.termux/files/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh | plugin:/home/linuxbrew/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 zsh-syntax-highlighting = plugin:/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh | plugin:/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh | plugin:/data/data/com.termux/files/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh | plugin:/home/linuxbrew/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 zsh-history-substring-search = plugin:/usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh | plugin:/usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh | plugin:/data/data/com.termux/files/usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh | plugin:/home/linuxbrew/.linuxbrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh
@@ -25,6 +27,36 @@ rg@debian = ripgrep
 rg@pop = ripgrep
 rg@mint = ripgrep
 rg@termux = ripgrep
+
+nvim@ubuntu = neovim
+nvim@debian = neovim
+nvim@pop = neovim
+nvim@mint = neovim
+nvim@arch = neovim
+nvim@fedora = neovim
+nvim@rhel = neovim
+nvim@centos = neovim
+
+notify-send@ubuntu = libnotify-bin
+notify-send@debian = libnotify-bin
+notify-send@pop = libnotify-bin
+notify-send@mint = libnotify-bin
+notify-send@arch = libnotify
+notify-send@fedora = libnotify
+
+wl-copy@ubuntu = wl-clipboard
+wl-copy@debian = wl-clipboard
+wl-copy@pop = wl-clipboard
+wl-copy@mint = wl-clipboard
+wl-copy@arch = wl-clipboard
+wl-copy@fedora = wl-clipboard
+
+fzf-tmux@ubuntu = fzf
+fzf-tmux@debian = fzf
+fzf-tmux@pop = fzf
+fzf-tmux@mint = fzf
+fzf-tmux@arch = fzf
+fzf-tmux@fedora = fzf
 symbols-nerd-font@termux = font-nerd-icons-ttf
 symbols-nerd-font@arch = ttf-nerd-fonts-symbols-common
 symbols-nerd-font@manjaro = ttf-nerd-fonts-symbols-common
@@ -71,3 +103,16 @@ ssh=ssh
 wget=wget
 fzf-tmux=fzf-tmux
 perl=perl
+i3=i3
+sway=sway
+picom=picom
+rofi=rofi
+waybar=waybar
+wofi=wofi
+swaylock=swaylock
+i3lock=i3lock
+xclip=xclip
+maim=maim
+brightnessctl=brightnessctl
+playerctl=playerctl
+

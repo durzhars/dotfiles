@@ -57,10 +57,18 @@ map("n", "J", "mzJ`z", { desc = "Join line (keep cursor)" })
 -- ── Diagnostics ────────────────────────────────────────────────────
 
 map("n", "[d", function()
-	vim.diagnostic.jump({ count = -1 })
+	if vim.diagnostic.jump then
+		vim.diagnostic.jump({ count = -1 })
+	else
+		vim.diagnostic.goto_prev()
+	end
 end, { desc = "Previous diagnostic" })
 map("n", "]d", function()
-	vim.diagnostic.jump({ count = 1 })
+	if vim.diagnostic.jump then
+		vim.diagnostic.jump({ count = 1 })
+	else
+		vim.diagnostic.goto_next()
+	end
 end, { desc = "Next diagnostic" })
 map("n", "<leader>ce", vim.diagnostic.open_float, { desc = "Show diagnostic message" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Diagnostic list" })
