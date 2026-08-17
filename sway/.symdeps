@@ -1,4 +1,4 @@
 # Package Dependency Manifest for 'sway'
 REQUIRED="sway"
 OPTIONAL="waybar swaylock swayidle wofi wl-clipboard grim slurp brightnessctl playerctl kitty"
-CONFLICTS="hyprland i3 headless"
+CONFLICTS="hyprland i3"
