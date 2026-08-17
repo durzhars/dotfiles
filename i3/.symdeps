@@ -1,0 +1,4 @@
+# Package Dependency Manifest for 'i3'
+REQUIRED="i3"
+OPTIONAL="i3status i3lock rofi picom feh xclip maim brightnessctl playerctl kitty"
+CONFLICTS="hyprland sway headless"

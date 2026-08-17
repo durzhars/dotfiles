@@ -1,0 +1,159 @@
+# =============================================================================
+# i3 Window Manager Configuration — LTS / X11 Profile
+# Matches Hyprland keybindings and Catppuccin Mocha aesthetic
+# =============================================================================
+
+set $mod Mod4
+
+# Font for window titles & bar
+font pango:JetBrainsMono Nerd Font, monospace 10
+
+# Gaps (supported natively in i3 >= 4.22)
+gaps inner 6
+gaps outer 3
+smart_gaps on
+smart_borders on
+default_border pixel 2
+default_floating_border pixel 2
+
+# Use Mouse+$mod to drag floating windows to their wanted position
+floating_modifier $mod
+
+# ── Applications ─────────────────────────────────────────────────────────────
+set $terminal kitty
+set $launcher rofi -show drun -theme ~/.config/rofi/config.rasi || dmenu_run
+set $browser  zen-browser
+set $filemgr  dolphin
+
+bindsym $mod+Return       exec $terminal
+bindsym $mod+Shift+Return exec $terminal --class=floating_term
+bindsym $mod+d            exec $launcher
+bindsym $mod+b            exec $browser || firefox
+bindsym $mod+e            exec $filemgr || thunar || pcmanfm
+bindsym $mod+Shift+s      exec maim -s | xclip -selection clipboard -t image/png
+
+# ── Window Controls ──────────────────────────────────────────────────────────
+bindsym $mod+q kill
+bindsym $mod+f fullscreen toggle
+bindsym $mod+space floating toggle
+bindsym $mod+Shift+space focus mode_toggle
+
+# Change focus (Vim & Arrow keys)
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move focused window (Vim & Arrow keys)
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# Split orientation
+bindsym $mod+v split h
+bindsym $mod+s split v
+
+# Layout styles
+bindsym $mod+w layout tabbed
+bindsym $mod+Shift+w layout toggle split
+
+# ── Workspaces ───────────────────────────────────────────────────────────────
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+# Switch to workspace
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+
+# Move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+
+# Workspace navigation (Previous / Next)
+bindsym $mod+Tab workspace next
+bindsym $mod+Shift+Tab workspace prev
+
+# ── Session Controls ─────────────────────────────────────────────────────────
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -B 'Yes, exit' 'i3-msg exit'"
+bindsym $mod+x       exec i3lock -c 181c23
+
+# ── Media & Hardware Keys ───────────────────────────────────────────────────
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioMicMute     exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym XF86MonBrightnessUp  exec --no-startup-id brightnessctl set +5%
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+bindsym XF86AudioPlay        exec --no-startup-id playerctl play-pause
+bindsym XF86AudioNext        exec --no-startup-id playerctl next
+bindsym XF86AudioPrev        exec --no-startup-id playerctl previous
+
+# ── Window Rules ─────────────────────────────────────────────────────────────
+for_window [class="floating_term"] floating enable, resize set 800 600
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+
+# ── Colors (Catppuccin Mocha / Noctalia) ──────────────────────────────────────
+# class                 border  bground text    indicator child_border
+client.focused          #cba6f7 #181c23 #cdd6f4 #89b4fa   #cba6f7
+client.focused_inactive #313244 #181c23 #a6adc8 #313244   #313244
+client.unfocused        #1e1e2e #181c23 #7f849c #1e1e2e   #1e1e2e
+client.urgent           #f38ba8 #f38ba8 #11111b #f38ba8   #f38ba8
+client.placeholder      #181825 #181825 #cdd6f4 #181825   #181825
+
+# ── Status Bar ───────────────────────────────────────────────────────────────
+bar {
+    status_command i3status -c ~/.config/i3status/config
+    position bottom
+    font pango:JetBrainsMono Nerd Font, monospace 10
+    colors {
+        background #181c23
+        statusline #cdd6f4
+        separator  #45475a
+
+        #                  border  bg      text
+        focused_workspace  #cba6f7 #8b32ab #ffffff
+        active_workspace   #313244 #313244 #cdd6f4
+        inactive_workspace #181c23 #181c23 #7f849c
+        urgent_workspace   #f38ba8 #f38ba8 #11111b
+    }
+}
+
+# ── Autostart ────────────────────────────────────────────────────────────────
+exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
+exec_always --no-startup-id feh --bg-fill ~/.config/fastfetch/a1.png 2>/dev/null || true
