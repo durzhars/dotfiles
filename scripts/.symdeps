@@ -1,4 +1,0 @@
-# Package Dependency Manifest for 'scripts'
-REQUIRED="bash"
-OPTIONAL="wl-clipboard fd zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search"
-CONFLICTS=""
